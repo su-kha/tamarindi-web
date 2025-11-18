@@ -1,5 +1,5 @@
 [build]
-  # 1. Install libraries (pandas)
+  # 1. Install libraries
   # 2. Run your script to turn Excel into JSON
   command = "pip install -r requirements.txt && python data/convert.py"
   

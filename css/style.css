@@ -221,3 +221,26 @@ footer {
 
     .team-logo { width: 100px; }
 }
+
+/* --- SORTABLE TABLES --- */
+table.stats-table th {
+    cursor: pointer; /* Shows hand icon */
+    user-select: none; /* Prevents highlighting text when clicking quickly */
+    position: relative; 
+}
+
+table.stats-table th:hover {
+    background-color: #ddd; /* Highlight on hover */
+}
+
+/* The arrow indicator */
+.sort-icon {
+    font-size: 0.8em;
+    margin-left: 5px;
+    opacity: 0.5;
+}
+
+.sort-icon.active {
+    opacity: 1;
+    color: var(--team-pink);
+}

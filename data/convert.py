@@ -6,7 +6,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_FILE = os.path.join(BASE_DIR, 'team_stats.json')
 
-# Standard columns we need for the website
 REQUIRED_COLUMNS = ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']
 
 FILES_CONFIG = [
@@ -50,7 +49,7 @@ FILES_CONFIG = [
         "key": "season_19_20",
         "filename": "statistiche calci8 2019-2020.xlsx",
         "skip": 4, 
-        "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} # No assists!
+        "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} # No assists
     }
 ]
 
@@ -73,16 +72,18 @@ def process_file(config):
     try:
         df = pd.read_excel(file_path, header=None)
         
-        # 1. Slice and Rename
         data = df.iloc[config['skip']:].copy()
         data = data.rename(columns=config['cols'])
         
-        # 2. Ensure ALL required columns exist (Fill missing ones with 0)
+        # --- NEW LOGIC: Handle missing columns ---
         for col in REQUIRED_COLUMNS:
             if col not in data.columns:
-                data[col] = 0
+                # If it's assists, mark as untracked '-'
+                if col == 'assists':
+                    data[col] = '-'
+                else:
+                    data[col] = 0
         
-        # 3. Keep ONLY the standard columns (Sorts them neatly too)
         data = data[REQUIRED_COLUMNS]
         
         # --- CLEANING ---
@@ -93,6 +94,10 @@ def process_file(config):
         data['number'] = data['number'].fillna('-').astype(str).str.replace('.0', '', regex=False)
         
         for col in ['apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
+            # If this column is marked as untracked '-', skip the math conversion
+            if data[col].iloc[0] == '-':
+                continue
+            
             data[col] = data[col].fillna(0).astype(int)
             
         return data.to_dict(orient='records')
@@ -114,7 +119,6 @@ def process_all_time():
         clean = clean.dropna(subset=['name'])
         clean = clean[clean['name'].astype(str).str.strip() != '']
         
-        # Filter out date rows in All Time too, just in case
         clean = clean[~clean['name'].astype(str).str.startswith('20')]
         
         for c in ['total_apps', 'total_goals', 'total_assists']:
@@ -128,7 +132,6 @@ def process_all_time():
 
 if __name__ == "__main__":
     final_data = {}
-    
     for config in FILES_CONFIG:
         print(f"Processing {config['key']}...")
         final_data[config['key']] = process_file(config)
@@ -138,5 +141,4 @@ if __name__ == "__main__":
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
-        
-    print("Done! Stats updated.")
+    print("Done!")
