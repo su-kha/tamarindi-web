@@ -15,7 +15,7 @@ function renderMatches(matches) {
     container.innerHTML = '';
 
     matches.forEach((match) => {
-        // Create list of scorers HTML
+        // Create list of scorers HTML (Scorers list is now reliable due to Python fix)
         let scorersHtml = match.scorers.length > 0 
             ? '⚽ ' + match.scorers.join(', ') 
             : 'No goals scored';
@@ -26,12 +26,21 @@ function renderMatches(matches) {
         else if (match.result === 'D') resultClass = 'draw-bg';
         else if (match.result === 'L') resultClass = 'loss-bg';
 
+        // --- NEW LOGIC: Determine Title Order ---
+        let matchTitle = '';
+        if (match.home_status === 'Home') {
+            matchTitle = `Tamarindi F.C. vs <br> ${match.opponent}`;
+        } else {
+            matchTitle = `${match.opponent} vs <br> Tamarindi F.C.`;
+        }
+        // --- END NEW LOGIC ---
+
         const card = document.createElement('div');
         card.className = `match-card ${resultClass}`;
         card.innerHTML = `
             <div class="match-date">${match.date}</div>
             <div style="text-align:center; font-weight:bold; font-size:1.2rem;">
-                Tamarindi FC vs <br> ${match.opponent}
+                ${matchTitle}
             </div>
             <div class="match-score">${match.score}</div>
             <div class="scorers">${scorersHtml}</div>
