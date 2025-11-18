@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             globalData = data;
-            
-            // Default to Current Season (25/26)
             renderTable('season_25_26'); 
         })
         .catch(err => console.error("Error loading stats:", err));
@@ -23,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function changeSeason() {
     const selected = document.getElementById('season-select').value;
     
-    // Reset sort defaults when switching views
     if (selected === 'all_time') {
         currentSort = { column: 'total_apps', direction: 'desc' };
     } else {
@@ -38,7 +35,6 @@ function handleSort(column) {
         currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
     } else {
         currentSort.column = column;
-        // If sorting by Name, default to A-Z (asc). Numbers default to High-to-Low (desc)
         currentSort.direction = column === 'name' || column === 'number' ? 'asc' : 'desc';
     }
     
@@ -55,23 +51,15 @@ function renderTable(key) {
 
     const players = [...globalData[key]]; 
 
-    // --- SORTING LOGIC ---
+    // 1. SORTING
     players.sort((a, b) => {
         let valA = a[currentSort.column];
         let valB = b[currentSort.column];
 
-        // Helper to clean values for sorting
         const clean = (v, colName) => {
-            if (v === '-' || v === null || v === undefined) return -999; // Treat '-' as lowest
-            
-            // IF it's the Shirt Number, force it to be a real number for sorting
-            if (colName === 'number') {
-                return parseInt(v, 10) || 0;
-            }
-
-            // If string, make lowercase for fair comparison
+            if (v === '-' || v === null || v === undefined) return -999;
+            if (colName === 'number') return parseInt(v, 10) || 0;
             if (typeof v === 'string') {
-                 // Check if it's actually a number string like "10"
                  if (!isNaN(v) && v.trim() !== '') return parseFloat(v);
                  return v.toLowerCase();
             }
@@ -86,16 +74,24 @@ function renderTable(key) {
         return 0;
     });
 
+    // --- HELPER: Returns pink style if this column is selected ---
+    const getStyle = (colName) => {
+        if (currentSort.column === colName) {
+            return 'style="background:#fff0f5; font-weight:bold;"';
+        }
+        return '';
+    };
 
-    // --- RENDER HEADERS ---
+    // --- HELPER: Creates Header with Arrow ---
     const createHeader = (label, colName) => {
         let arrow = '';
         if (currentSort.column === colName) {
             arrow = currentSort.direction === 'asc' ? ' ▲' : ' ▼';
         }
-        return `<th onclick="handleSort('${colName}')">${label} <span class="sort-icon${currentSort.column === colName ? ' active' : ''}">${arrow}</span></th>`;
+        return `<th onclick="handleSort('${colName}')" ${getStyle(colName)}>${label} <span class="sort-icon${currentSort.column === colName ? ' active' : ''}">${arrow}</span></th>`;
     };
 
+    // 2. BUILD TABLE
     if (key === 'all_time') {
         title.textContent = "Hall of Fame (All Time)";
         thead.innerHTML = `
@@ -113,9 +109,9 @@ function renderTable(key) {
                 <tr>
                     <td style="text-align:left; font-weight:bold;">${p.name}</td>
                     <td style="font-size:0.8rem;">${p.role}</td>
-                    <td style="font-weight:bold; background:#fff0f5;">${p.total_apps}</td>
-                    <td>${p.total_goals}</td>
-                    <td>${p.total_assists}</td>
+                    <td ${getStyle('total_apps')}>${p.total_apps}</td>
+                    <td ${getStyle('total_goals')}>${p.total_goals}</td>
+                    <td ${getStyle('total_assists')}>${p.total_assists}</td>
                 </tr>`;
         });
 
@@ -138,11 +134,11 @@ function renderTable(key) {
                 <tr>
                     <td style="text-align:left; font-weight:bold;">${p.name}</td>
                     <td>${p.number}</td>
-                    <td>${p.apps}</td>
-                    <td style="font-weight:bold; background:#fff0f5;">${p.goals}</td>
-                    <td>${p.assists}</td>
-                    <td>${p.yellow_cards}</td>
-                    <td>${p.red_cards}</td>
+                    <td ${getStyle('apps')}>${p.apps}</td>
+                    <td ${getStyle('goals')}>${p.goals}</td>
+                    <td ${getStyle('assists')}>${p.assists}</td>
+                    <td ${getStyle('yellow_cards')}>${p.yellow_cards}</td>
+                    <td ${getStyle('red_cards')}>${p.red_cards}</td>
                 </tr>`;
         });
     }

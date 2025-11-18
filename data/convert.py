@@ -121,6 +121,9 @@ def process_all_time():
         
         clean = clean[~clean['name'].astype(str).str.startswith('20')]
         
+        # --- NEW: Force Title Case (e.g. "rossi mario" -> "Rossi Mario") ---
+        clean['name'] = clean['name'].astype(str).str.title()
+        
         for c in ['total_apps', 'total_goals', 'total_assists']:
             clean[c] = clean[c].fillna(0).astype(int)
             
