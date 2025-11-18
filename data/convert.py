@@ -3,10 +3,12 @@ import json
 import os
 
 # --- CONFIGURATION ---
-# Make sure these match your actual file names!
-FILE_CURRENT = 'STATS 24-25.xlsx'
-FILE_TOTAL   = 'STATS TOTALI.xlsx'
-OUTPUT_FILE  = 'team_stats.json'
+# We use os.path.join to make sure it works on Windows, Mac, and Linux (Netlify)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Gets the folder where this script lives (data/)
+
+FILE_CURRENT = os.path.join(BASE_DIR, 'STATS 24-25.xlsx')
+FILE_TOTAL   = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
+OUTPUT_FILE  = os.path.join(BASE_DIR, 'team_stats.json')
 
 def clean_current_season(file_path):
     try:
