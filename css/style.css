@@ -1,0 +1,223 @@
+/* THE MAGIC RULE: Keeps all boxes behaving */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* --- RETRO VARIABLES --- */
+:root {
+    --bg-color: #ffd1dc;
+    --box-bg: #ffffff;        /* White paper look */
+    --team-pink: #ff00aa;     /* Hot Pink */
+    --text-main: #000000;
+    --border-style: 2px solid var(--text-main);
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: 'Courier New', Courier, monospace; /* The "Typewriter" look */
+    margin: 0;
+    padding: 20px;
+    color: var(--text-main);
+}
+
+/* --- THE BOXED LAYOUT --- */
+.main-container {
+    max-width: 900px;
+    margin: 0 auto; /* Centers the box */
+    background-color: var(--box-bg);
+    border: var(--border-style);
+    padding: 20px;
+}
+
+/* --- HEADER --- */
+header {
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.logo-placeholder {
+    width: 120px;
+    height: 120px;
+    background-color: #000;
+    color: var(--team-pink);
+    border: 2px dashed var(--team-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+    border-radius: 50%; /* Makes it circular */
+    font-weight: bold;
+}
+
+.team-logo {
+    width: 220px;  /* Desktop size */
+    height: auto;
+    display: block;
+    margin: 0 auto 15px auto;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+}
+
+.tagline {
+    margin-top: 5px;
+    font-style: italic;
+    color: var(--team-pink);
+    font-weight: bold;
+}
+
+/* --- CONTENT WRAPPER (Sidebar + Main) --- */
+.content-wrapper {
+    display: flex;
+    gap: 20px;
+}
+
+/* --- SIDEBAR --- */
+aside.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: #fff0f5; 
+    border-right: 2px solid black; /* Solid black line separator */
+    padding: 15px;
+}
+
+aside h3 {
+    background-color: var(--team-pink);
+    color: white;
+    padding: 5px;
+    margin-top: 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style-type: none; /* Removes bullet points */
+    padding: 0;
+}
+
+nav ul li {
+    margin-bottom: 10px;
+}
+
+nav ul li a {
+    display: block;
+    text-decoration: none;
+    color: black;
+    background: white;
+    border: 1px solid black;
+    padding: 8px;
+    transition: 0.2s;
+    font-weight: bold;
+}
+
+/* Hover effect for links */
+nav ul li a:hover {
+    background-color: var(--team-pink); /* The hot pink "pop" */
+    color: white;
+    border-color: black;
+}
+
+.sidebar-widget {
+    margin-top: 30px;
+    border: 2px dotted black;
+    padding: 10px;
+    text-align: center;
+}
+
+/* --- MAIN BLOG AREA --- */
+main.blog-post {
+    flex-grow: 1;
+    padding: 0 10px;
+}
+
+h2 {
+    border-bottom: 1px solid black;
+    padding-bottom: 5px;
+    color: var(--team-pink);
+}
+
+.date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+hr {
+    border: 0;
+    border-top: 1px dashed black;
+    margin: 20px 0;
+}
+
+/* --- FOOTER --- */
+footer {
+    margin-top: 20px;
+    border-top: var(--border-style);
+    text-align: center;
+    padding-top: 10px;
+    font-size: 0.8rem;
+}
+
+/* --- BUTTON STYLES (Default: Hidden on Desktop) --- */
+.mobile-menu-btn {
+    display: none; /* We don't need this button on big screens */
+}
+
+/* --- MOBILE ADJUSTMENTS --- */
+@media (max-width: 768px) {
+    
+    /* 1. Main Container adjustments */
+    .main-container {
+        width: 95%;
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    /* 2. Stack the layout */
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    /* 3. SHOW the Menu Button on Mobile */
+    .mobile-menu-btn {
+        display: block; /* Now we see it */
+        width: 100%;
+        padding: 12px;
+        background-color: var(--team-pink); /* Hot pink button */
+        color: white;
+        border: 2px solid black;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        margin-bottom: 15px;
+        font-size: 1rem;
+    }
+
+    .mobile-menu-btn:hover {
+        background-color: black;
+        color: var(--team-pink);
+    }
+
+    /* 4. HIDE the Sidebar by default on Mobile */
+    aside.sidebar {
+        display: none; /* Invisible! */
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid black;
+        margin-bottom: 20px;
+        background-color: #fff0f5;
+    }
+
+    /* 5. The 'Open' State - This class is added by JS */
+    aside.sidebar.open {
+        display: block !important;/* Visible! */
+    }
+
+    .team-logo { width: 100px; }
+}
