@@ -21,8 +21,72 @@ FILES_CONFIG = [
     {"key": "season_19_20", "filename": "statistiche calci8 2019-2020.xlsx", "skip": 4, "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'}}
 ]
 
-# (Player stats and other helper functions remain the same for brevity)
+# --- PLAYER STATS LOGIC ---
+def is_real_player(row):
+    # Filters out dates, competition titles, and empty rows.
+    name = str(row['name']).strip()
+    if name.startswith('202') or name.startswith('201') or name.startswith('200'): return False
+    blacklist = ['Amichevoli', 'Torneo', 'Spring', 'Cup', 'Coppa', 'Playoff', 'Playout', 'Gironi', 'Ottavi', 'Quarti', 'Semifinale', 'Finale', 'Tamarindi']
+    if any(word in name for word in blacklist): return False
+    if pd.isna(row.get('apps')) or str(row.get('apps')).strip() == '': return False
+    return True
 
+def process_player_stats(df, config):
+    data = df.iloc[config['skip']:].copy()
+    data = data.rename(columns=config['cols'])
+    
+    for col in REQUIRED_COLUMNS:
+        if col not in data.columns:
+            data[col] = '-' if col == 'assists' else 0
+            
+    data = data[REQUIRED_COLUMNS]
+    data = data.dropna(subset=['name'])
+    data = data[data.apply(is_real_player, axis=1)]
+    
+    data['name'] = data['name'].astype(str).str.title() 
+    data['number'] = data['number'].fillna('-').astype(str).str.replace('.0', '', regex=False)
+    
+    for col in ['apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
+        if str(data[col].iloc[0]) == '-': continue
+        # Robustly convert stats to integers
+        data[col] = pd.to_numeric(data[col], errors='coerce').fillna(0).astype(int)
+        
+    return data.to_dict(orient='records')
+
+# --- HALL OF FAME FIX ---
+def process_all_time():
+    path = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
+    if not os.path.exists(path): return []
+    
+    try:
+        df = pd.read_excel(path, header=None)
+        data = df.iloc[3:].copy()
+        cols = {0: 'name', 2: 'role', 11: 'total_apps', 20: 'total_goals', 29: 'total_assists'}
+        
+        clean = data.rename(columns=cols)
+        clean = clean.dropna(subset=['name'])
+
+        # 1. CLEANING: Ensure name and role are strings
+        clean['name'] = clean['name'].astype(str)
+        clean['role'] = clean['role'].astype(str).str.strip().fillna('Player')
+        
+        # 2. FILTERING: Remove non-player rows by checking if 'total_apps' is actually a number
+        # If total_apps is junk (e.g., text header), pd.to_numeric makes it NaN, so we drop it.
+        clean = clean[pd.to_numeric(clean['total_apps'], errors='coerce').notna()]
+        
+        # 3. TITLE CASE: Fix capitalization (as requested)
+        clean['name'] = clean['name'].str.title()
+        
+        # 4. FINAL CONVERSION: Convert all stats to integers
+        for c in ['total_apps', 'total_goals', 'total_assists']:
+            clean[c] = pd.to_numeric(clean[c], errors='coerce').fillna(0).astype(int)
+            
+        return clean[['name', 'role', 'total_apps', 'total_goals', 'total_assists']].to_dict(orient='records')
+    except Exception as e:
+        # Catch and print the error specifically for Netlify log analysis
+        print(f"FATAL ERROR in Hall of Fame (process_all_time): {e}")
+        return []
+    
 # --- CORRECTED MATCH LOGIC ---
 def extract_matches(df, season_key):
     matches = []
