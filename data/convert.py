@@ -3,24 +3,32 @@ import json
 import os
 
 # --- CONFIGURATION ---
-# We use os.path.join to make sure it works on Windows, Mac, and Linux (Netlify)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Gets the folder where this script lives (data/)
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_CURRENT = os.path.join(BASE_DIR, 'STATS 24-25.xlsx')
 FILE_TOTAL   = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
 OUTPUT_FILE  = os.path.join(BASE_DIR, 'team_stats.json')
 
+def is_valid_player_name(x):
+    """
+    Helper function to check if a 'name' is actually a player 
+    and not a match date or metadata.
+    """
+    # 1. If it's a Datetime object (which caused the crash), it's a date, not a name.
+    if hasattr(x, 'year') and hasattr(x, 'month'):
+        return False
+    
+    # 2. If it looks like a date string (e.g. "2025-03-12"), ignore it.
+    s = str(x).strip()
+    if (s.startswith('202') or s.startswith('201')) and ('-' in s or '/' in s):
+        return False
+        
+    return True
+
 def clean_current_season(file_path):
     try:
-        # Read CSV/Excel. If it's really .xlsx, pandas reads it directly.
-        # If you saved them as CSV, change read_excel to read_csv.
         df = pd.read_excel(file_path, header=None)
-        
-        # The data starts at row 3 (index 3) based on your file structure
         data = df.iloc[3:].copy()
         
-        # Map the messy columns to clean names
-        # Based on your file: 0=Name, 3=Number, 6=Apps, 11=Goals, 17=Assists, 21=Yellow, 22=Red
         cols = {
             0: 'name', 3: 'number', 6: 'apps', 
             11: 'goals', 17: 'assists', 
@@ -28,9 +36,18 @@ def clean_current_season(file_path):
         }
         
         clean = data[list(cols.keys())].rename(columns=cols)
-        clean = clean.dropna(subset=['name']) # Remove empty rows
         
-        # Fill empty stats with 0
+        # --- THE FIX ---
+        # Remove empty names first
+        clean = clean.dropna(subset=['name'])
+        
+        # Filter out the rows that are actually dates
+        clean = clean[clean['name'].apply(is_valid_player_name)]
+        
+        # Force the Name column to be text (String) just to be safe for JSON
+        clean['name'] = clean['name'].astype(str)
+        # ---------------
+        
         for c in ['apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
             clean[c] = clean[c].fillna(0).astype(int)
             
@@ -46,7 +63,6 @@ def clean_all_time(file_path):
         df = pd.read_excel(file_path, header=None)
         data = df.iloc[3:].copy()
         
-        # Map columns: 0=Name, 2=Role, 11=Total Apps, 20=Total Goals, 29=Total Assists
         cols = {
             0: 'name', 2: 'role', 
             11: 'total_apps', 20: 'total_goals', 29: 'total_assists'
@@ -54,6 +70,10 @@ def clean_all_time(file_path):
         
         clean = data[list(cols.keys())].rename(columns=cols)
         clean = clean.dropna(subset=['name'])
+        
+        # Apply the same safety checks here too
+        clean = clean[clean['name'].apply(is_valid_player_name)]
+        clean['name'] = clean['name'].astype(str)
         
         for c in ['total_apps', 'total_goals', 'total_assists']:
             clean[c] = clean[c].fillna(0).astype(int)
@@ -67,14 +87,26 @@ def clean_all_time(file_path):
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     print("Reading Excel files...")
-    current_stats = clean_current_season(FILE_CURRENT)
-    all_time_stats = clean_all_time(FILE_TOTAL)
+    
+    # Check if files exist before running
+    if not os.path.exists(FILE_CURRENT):
+        print(f"WARNING: Could not find {FILE_CURRENT}")
+        current_stats = []
+    else:
+        current_stats = clean_current_season(FILE_CURRENT)
+
+    if not os.path.exists(FILE_TOTAL):
+        print(f"WARNING: Could not find {FILE_TOTAL}")
+        all_time_stats = []
+    else:
+        all_time_stats = clean_all_time(FILE_TOTAL)
     
     final_data = {
         "season_24_25": current_stats,
         "all_time": all_time_stats
     }
     
+    # Save
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
         
