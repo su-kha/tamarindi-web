@@ -2,8 +2,8 @@ let globalData = {};
 
 // State to track sorting
 let currentSort = {
-    column: 'goals', // Default sort column
-    direction: 'desc' // 'desc' = High to Low, 'asc' = Low to High
+    column: 'goals', 
+    direction: 'desc' 
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -35,7 +35,9 @@ function handleSort(column) {
         currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
     } else {
         currentSort.column = column;
-        currentSort.direction = column === 'name' || column === 'number' ? 'asc' : 'desc';
+        // Names and Numbers usually sort Low-to-High (A-Z, 1-99)
+        // Stats usually sort High-to-Low (Most goals first)
+        currentSort.direction = (column === 'name' || column === 'number' || column === 'role') ? 'asc' : 'desc';
     }
     
     const currentView = document.getElementById('season-select').value;
@@ -51,7 +53,7 @@ function renderTable(key) {
 
     const players = [...globalData[key]]; 
 
-    // 1. SORTING
+    // 1. SORTING LOGIC
     players.sort((a, b) => {
         let valA = a[currentSort.column];
         let valB = b[currentSort.column];
@@ -74,12 +76,19 @@ function renderTable(key) {
         return 0;
     });
 
-    // --- HELPER: Returns pink style if this column is selected ---
-    const getStyle = (colName) => {
+    // --- HELPER: Merges base styles with the "Active Pink" style ---
+    const getStyle = (colName, baseCss = '') => {
+        let css = baseCss;
         if (currentSort.column === colName) {
-            return 'style="background:#fff0f5; font-weight:bold;"';
+            // Add the pink background
+            css += ' background:#fff0f5;';
+            
+            // If it's a stats column (not name/role/number), make it bold too
+            if (!['name', 'role', 'number'].includes(colName)) {
+                css += ' font-weight:bold;';
+            }
         }
-        return '';
+        return css ? `style="${css}"` : '';
     };
 
     // --- HELPER: Creates Header with Arrow ---
@@ -107,8 +116,9 @@ function renderTable(key) {
         players.forEach(p => {
             tbody.innerHTML += `
                 <tr>
-                    <td style="text-align:left; font-weight:bold;">${p.name}</td>
-                    <td style="font-size:0.8rem;">${p.role}</td>
+                    <td ${getStyle('name', 'text-align:left; font-weight:bold;')}>${p.name}</td>
+                    <td ${getStyle('role', 'font-size:0.8rem; font-style:italic;')}>${p.role}</td>
+                    
                     <td ${getStyle('total_apps')}>${p.total_apps}</td>
                     <td ${getStyle('total_goals')}>${p.total_goals}</td>
                     <td ${getStyle('total_assists')}>${p.total_assists}</td>
@@ -132,8 +142,9 @@ function renderTable(key) {
         players.forEach(p => {
             tbody.innerHTML += `
                 <tr>
-                    <td style="text-align:left; font-weight:bold;">${p.name}</td>
-                    <td>${p.number}</td>
+                    <td ${getStyle('name', 'text-align:left; font-weight:bold;')}>${p.name}</td>
+                    <td ${getStyle('number')}>${p.number}</td>
+                    
                     <td ${getStyle('apps')}>${p.apps}</td>
                     <td ${getStyle('goals')}>${p.goals}</td>
                     <td ${getStyle('assists')}>${p.assists}</td>
