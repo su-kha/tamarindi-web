@@ -15,10 +15,20 @@ function renderMatches(matches) {
     container.innerHTML = '';
 
     matches.forEach((match) => {
-        // --- 1. Scorer HTML (Including Penalties) ---
+        // --- 1. Score and Result HTML ---
+        let resultClass = '';
+        if (match.result.startsWith('W')) resultClass = 'win-bg';
+        else if (match.result.startsWith('D')) resultClass = 'draw-bg';
+        else if (match.result.startsWith('L')) resultClass = 'loss-bg';
+
+        let shootoutDisplay = '';
+        if (match.shootout_score) {
+            shootoutDisplay = `<div style="font-size:0.8rem; font-weight:bold; color:black; margin-top: -5px;">(${match.shootout_score})</div>`;
+        }
+
+        // --- 2. Scorer HTML (Penalties/Goals) ---
         let scorersHtml = '';
         if (match.scorers.length > 0) {
-            // Separate normal goals from penalties for better display
             let normalGoals = match.scorers.filter(s => !s.includes('(Pen)')).join(', ');
             let penalties = match.scorers.filter(s => s.includes('(Pen)')).map(s => s.replace(' (Pen)', '')).join(', ');
             
@@ -32,26 +42,20 @@ function renderMatches(matches) {
             }
         }
 
-        // --- 2. Yellow Card HTML ---
+        // --- 3. Card HTML ---
         let cardsHtml = '';
         if (match.yellow_cards_recipients.length > 0) {
             cardsHtml += '<div style="font-weight:bold; color:#A1881B;">🟡 Yellow Cards:</div>';
             cardsHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${match.yellow_cards_recipients.join(', ')}</div>`;
         }
-
-        // --- 3. Red Card HTML ---
+        
         let redCardsHtml = '';
         if (match.red_cards_recipients.length > 0) {
             redCardsHtml += '<div style="font-weight:bold; color:#CC0000;">🔴 Red Cards:</div>';
             redCardsHtml += `<div style="margin-left: 10px; font-size:0.9rem;">${match.red_cards_recipients.join(', ')}</div>`;
         }
         
-        // --- 4. Result and Title Logic ---
-        let resultClass = '';
-        if (match.result === 'W') resultClass = 'win-bg';
-        else if (match.result === 'D') resultClass = 'draw-bg';
-        else if (match.result === 'L') resultClass = 'loss-bg';
-
+        // --- 4. Title Logic ---
         let matchTitle = '';
         if (match.home_status === 'Home') {
             matchTitle = `Tamarindi F.C. vs <br> ${match.opponent}`;
@@ -67,6 +71,7 @@ function renderMatches(matches) {
                 ${matchTitle}
             </div>
             <div class="match-score">${match.score}</div>
+            ${shootoutDisplay}
             
             <div class="scorers" style="min-height: 40px; margin-bottom: 10px;">
                 ${scorersHtml}
@@ -101,7 +106,7 @@ function loadVideo(btn, opponent, date) {
     const query = `Tamarindi FC vs ${opponent} ${date} torneiconti`; 
     const channelHandle = '@torneiconti359'; 
     
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${CONFIG.YT_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${API_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
 
     btn.textContent = "Searching...";
 

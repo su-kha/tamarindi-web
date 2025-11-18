@@ -3,6 +3,7 @@ import json
 import os
 import datetime
 import re
+import numpy as np
 
 # --- CONFIGURATION & SETTINGS ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,7 +22,7 @@ FILES_CONFIG = [
     {"key": "season_19_20", "filename": "statistiche calci8 2019-2020.xlsx", "skip": 4, "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} }
 ]
 
-# (Player stats and All Time functions remain the same)
+# (Player stats and All Time functions remain the same for brevity)
 
 def is_real_player(row):
     name = str(row['name']).strip()
@@ -79,12 +80,15 @@ def process_all_time():
         print(f"FATAL ERROR in Hall of Fame (process_all_time): {e}")
         return []
 
-# --- CORE MATCH LOGIC FIX (Red Card and Penalty) ---
+# --- CORE MATCH LOGIC FIX (Shootout and Red Card) ---
 def extract_matches(df, season_key):
     matches = []
     current_match = None
     
-    for index, row in df.iterrows():
+    # Reset index and convert all to strings for safer iteration
+    df_iter = df.reset_index(drop=True)
+    
+    for index, row in df_iter.iterrows():
         val0 = str(row[0]).strip()
         is_date = False
         try:
@@ -96,7 +100,7 @@ def extract_matches(df, season_key):
         if is_date:
             if current_match: matches.append(current_match)
             
-            # (Home/Away logic - remains unchanged)
+            # --- Home/Away logic (remains unchanged) ---
             tamarindi_is_home = False
             opponent = 'Unknown'
             if str(row[2]).strip().startswith('Tamarindi FC') or str(row[2]).strip().startswith('Tamarindi F.C.'):
@@ -113,6 +117,9 @@ def extract_matches(df, season_key):
             score_parts = score.split('-')
             
             result = '?'
+            shootout_score = None # NEW
+
+            # --- Result Calculation ---
             if len(score_parts) == 2 and score_parts[0].strip().isdigit() and score_parts[1].strip().isdigit():
                 home_score = int(score_parts[0].strip())
                 away_score = int(score_parts[1].strip())
@@ -120,6 +127,7 @@ def extract_matches(df, season_key):
                 tamarindi_score = home_score if tamarindi_is_home else away_score
                 opponent_score = away_score if tamarindi_is_home else home_score
 
+                # Normal time W/D/L
                 if tamarindi_score > opponent_score: result = 'W'
                 elif tamarindi_score < opponent_score: result = 'L'
                 else: result = 'D'
@@ -134,14 +142,45 @@ def extract_matches(df, season_key):
                 "scorers": [],
                 "yellow_cards_recipients": [], 
                 "red_cards_recipients": [], 
+                "shootout_score": shootout_score, # NEW
                 "season": season_key,
                 "home_status": "Home" if tamarindi_is_home else "Away"
             }
         
+        # 2. Score/Card Parsing
         elif current_match:
+            # --- PENALTY SHOOTOUT DETECTION ---
+            
+            # Check for the [d.c.r] marker in the next row's Score/Opponent columns
+            if pd.notna(row[4]) and 'd.c.r' in str(row[4]).lower():
+                current_match['shootout_score'] = str(row[4]).strip()
+                # Recalculate result based on shootout score
+                shootout_parts = str(row[4]).split('+')[-1].strip().split('-')
+                
+                if len(shootout_parts) == 2 and shootout_parts[0].strip().isdigit() and shootout_parts[1].strip().isdigit():
+                    home_so_score = int(shootout_parts[0].strip())
+                    away_so_score = int(shootout_parts[1].strip())
+
+                    # Result is determined by the shootout score, not the regular time score
+                    if tamarindi_is_home:
+                        tamarindi_so_score = home_so_score
+                        opponent_so_score = away_so_score
+                    else:
+                        tamarindi_so_score = away_so_score
+                        opponent_so_score = home_so_score
+
+                    if tamarindi_so_score > opponent_so_score: 
+                        current_match['result'] = 'W(SO)' # Win on Shootout
+                    else: 
+                        current_match['result'] = 'L(SO)' # Loss on Shootout
+                
+                # Skip the rest of this row, as it was the shootout scoreline
+                continue 
+            
+            # --- Normal Card/Goal Parsing (Remains same) ---
             potential_scorer_home = str(row[2]).strip() if not pd.isna(row[2]) else ''
             potential_scorer_away = str(row[5]).strip() if not pd.isna(row[5]) else ''
-            
+
             scorer_col_value = None
             if current_match['home_status'] == 'Home':
                 scorer_col_value = potential_scorer_home
@@ -154,35 +193,32 @@ def extract_matches(df, season_key):
                 if not any(word in scorer_col_value for word in ['Tamarindi', 'FC', 'Club', 'Torneo']):
                     
                     name_only = scorer_col_value.upper()
-                    
-                    # Store original value to check for goals
                     original_value = scorer_col_value.title()
 
-                    # 1. Check for Red Card [RC] (NEW SAFE MARKER)
-                    if '[RC]' in name_only or '(RC)' in name_only:
+                    # 1. Check for Red Card [R]
+                    if '[R]' in name_only or '(R)' in name_only:
                          current_match['red_cards_recipients'].append(name_only.replace('[RC]', '').replace('(RC)', '').strip().title())
                     
                     # 2. Check for Yellow Card [Y]
                     elif '[Y]' in name_only or '(Y)' in name_only:
                          current_match['yellow_cards_recipients'].append(name_only.replace('[Y]', '').replace('(Y)', '').strip().title())
                     
-                    # 3. Check for Penalty Goal [P] or [R] (Assuming [R] in old data means Penalty)
-                    elif '[P]' in name_only or '(P)' in name_only or '[R]' in name_only or '(R)' in name_only:
-                         # Treat as a goal, but mark as a penalty for the display
+                    # 3. Check for Penalty Goal [P] (NEW - and [R] for old data)
+                    elif '[P]' in name_only or '(P)' in name_only:
                          name_to_add = name_only.replace('[P]', '').replace('(P)', '').replace('[R]', '').replace('(R)', '').strip().title()
                          if name_to_add:
                               current_match['scorers'].append(name_to_add + ' (Pen)')
 
-                    # 4. Normal Goal (Any name with or without numbers, not stripped by a card marker)
+                    # 4. Normal Goal
                     elif re.search(r'\(\d+\)', original_value) or re.match(r'[A-Za-z]', original_value):
                          current_match['scorers'].append(original_value)
-            
+
 
     if current_match: matches.append(current_match)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
 
 
-# --- MAIN EXECUTION (Remains unchanged) ---
+# --- MAIN EXECUTION ---
 if __name__ == "__main__":
     print("Starting conversion...")
     final_data = {}
