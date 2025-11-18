@@ -21,9 +21,14 @@ function renderMatches(matches) {
         else if (match.result.startsWith('D')) resultClass = 'draw-bg';
         else if (match.result.startsWith('L')) resultClass = 'loss-bg';
 
+        let scoreDisplay = match.score;
         let shootoutDisplay = '';
+        
+        // NEW: Check if it went to a shootout
         if (match.shootout_score) {
-            shootoutDisplay = `<div style="font-size:0.8rem; font-weight:bold; color:black; margin-top: -5px;">(${match.shootout_score})</div>`;
+            // Display the regular time score and then the full shootout score
+            scoreDisplay = `FT: ${match.score}`;
+            shootoutDisplay = `<div style="font-size:1.4rem; font-weight:bold; color:black;">SO: ${match.shootout_score.split('+')[1].strip()}</div>`;
         }
 
         // --- 2. Scorer HTML (Penalties/Goals) ---
@@ -70,7 +75,7 @@ function renderMatches(matches) {
             <div style="text-align:center; font-weight:bold; font-size:1.2rem;">
                 ${matchTitle}
             </div>
-            <div class="match-score">${match.score}</div>
+            <div class="match-score">${scoreDisplay}</div>
             ${shootoutDisplay}
             
             <div class="scorers" style="min-height: 40px; margin-bottom: 10px;">
