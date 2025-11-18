@@ -3,31 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tamarindi F.C. - Work in Progress</title>
+    <title>Tamarindi F.C. - Statistics</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Special styles for the Stats Table */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid black;
+        }
+        .tab-btn {
+            background: white;
+            border: 2px solid black;
+            border-bottom: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            margin-bottom: -2px; /* Sits on the line */
+        }
+        .tab-btn.active {
+            background: var(--team-pink);
+            color: white;
+        }
+        
+        /* Table Styling */
+        .stats-table-container {
+            overflow-x: auto; /* Scrolls on mobile */
+        }
+        table.stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        table.stats-table th, table.stats-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        table.stats-table th {
+            background-color: #eee;
+            text-transform: uppercase;
+        }
+        table.stats-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+        }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-    <div class="main-container" style="text-align:center; min-height: 80vh; display:flex; flex-direction:column; justify-content:center;">
-        
+    <div class="main-container">
         <header>
-            <h1>UNDER CONSTRUCTION</h1>
+             <a href="index.html" style="text-decoration:none; color:black;">
+                <h1>TAMARINDI F.C.</h1>
+             </a>
+            <p class="tagline">The Numbers Never Lie</p>
         </header>
 
         <div class="content-wrapper" style="display:block;">
-            <p>The gaffer is still working on the tactics board.</p>
-            <p>Check back later for stats, fixtures, and highlights.</p>
-            
-            <div style="margin-top: 30px;">
-                <a href="index.html" style="background:var(--team-pink); color:white; padding:10px 20px; text-decoration:none; border:2px solid black; font-weight:bold;">
-                    &larr; Back to Home
-                </a>
+            <a href="index.html" style="display:inline-block; margin-bottom:15px; color:black;">&larr; Back Home</a>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('season')">Season 24/25</button>
+                <button class="tab-btn" onclick="showTab('alltime')">All Time Records</button>
             </div>
+
+            <div id="season-view" class="stats-table-container">
+                <h3>Season 2024 / 2025</h3>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>#</th>
+                            <th>Apps</th>
+                            <th>Goals</th>
+                            <th>Assists</th>
+                            <th>Yel</th>
+                            <th>Red</th>
+                        </tr>
+                    </thead>
+                    <tbody id="season-body">
+                        <tr><td colspan="7">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="alltime-view" class="stats-table-container hidden">
+                <h3>Hall of Fame (All Time)</h3>
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Role</th>
+                            <th>Total Apps</th>
+                            <th>Total Goals</th>
+                            <th>Total Assists</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alltime-body">
+                        </tbody>
+                </table>
+            </div>
+
         </div>
 
         <footer>
             <p>&copy; 2025 Tamarindi F.C.</p>
         </footer>
-
     </div>
+
+    <script src="js/stats.js"></script>
 </body>
 </html>
