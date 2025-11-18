@@ -15,35 +15,64 @@ function renderMatches(matches) {
     container.innerHTML = '';
 
     matches.forEach((match) => {
-        // Create list of scorers HTML (Scorers list is now reliable due to Python fix)
-        let scorersHtml = match.scorers.length > 0 
-            ? '⚽ ' + match.scorers.join(', ') 
-            : 'No goals scored';
+        // --- 1. Scorer HTML (Including Penalties) ---
+        let scorersHtml = '';
+        if (match.scorers.length > 0) {
+            // Separate normal goals from penalties for better display
+            let normalGoals = match.scorers.filter(s => !s.includes('(Pen)')).join(', ');
+            let penalties = match.scorers.filter(s => s.includes('(Pen)')).map(s => s.replace(' (Pen)', '')).join(', ');
             
-        // Determine color based on result
+            if (normalGoals) {
+                scorersHtml += '<div style="font-weight:bold;">⚽ Goals:</div>';
+                scorersHtml += `<div style="margin-left: 10px; margin-bottom: 5px;">${normalGoals}</div>`;
+            }
+            if (penalties) {
+                scorersHtml += '<div style="font-weight:bold; color:#ff00aa;">🎯 Penalties:</div>';
+                scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${penalties}</div>`;
+            }
+        }
+
+        // --- 2. Yellow Card HTML ---
+        let cardsHtml = '';
+        if (match.yellow_cards_recipients.length > 0) {
+            cardsHtml += '<div style="font-weight:bold; color:#A1881B;">🟡 Yellow Cards:</div>';
+            cardsHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${match.yellow_cards_recipients.join(', ')}</div>`;
+        }
+
+        // --- 3. Red Card HTML ---
+        let redCardsHtml = '';
+        if (match.red_cards_recipients.length > 0) {
+            redCardsHtml += '<div style="font-weight:bold; color:#CC0000;">🔴 Red Cards:</div>';
+            redCardsHtml += `<div style="margin-left: 10px; font-size:0.9rem;">${match.red_cards_recipients.join(', ')}</div>`;
+        }
+        
+        // --- 4. Result and Title Logic ---
         let resultClass = '';
         if (match.result === 'W') resultClass = 'win-bg';
         else if (match.result === 'D') resultClass = 'draw-bg';
         else if (match.result === 'L') resultClass = 'loss-bg';
 
-        // --- NEW LOGIC: Determine Title Order ---
         let matchTitle = '';
         if (match.home_status === 'Home') {
             matchTitle = `Tamarindi F.C. vs <br> ${match.opponent}`;
         } else {
             matchTitle = `${match.opponent} vs <br> Tamarindi F.C.`;
         }
-        // --- END NEW LOGIC ---
 
         const card = document.createElement('div');
         card.className = `match-card ${resultClass}`;
         card.innerHTML = `
-            <div class="match-date">${match.date}</div>
+            <div class="match-date">${match.date} (${match.home_status})</div>
             <div style="text-align:center; font-weight:bold; font-size:1.2rem;">
                 ${matchTitle}
             </div>
             <div class="match-score">${match.score}</div>
-            <div class="scorers">${scorersHtml}</div>
+            
+            <div class="scorers" style="min-height: 40px; margin-bottom: 10px;">
+                ${scorersHtml}
+                ${cardsHtml}
+                ${redCardsHtml}
+            </div>
             
             <div 
                 class="yt-button" 
@@ -58,7 +87,7 @@ function renderMatches(matches) {
     });
 }
 
-// Called when you click "Watch Highlights"
+// (The loadVideo function remains the same)
 function loadVideo(btn, opponent, date) {
     const container = btn.nextElementSibling;
     
@@ -68,16 +97,10 @@ function loadVideo(btn, opponent, date) {
         return;
     }
 
-    // --- YOUTUBE API CONFIGURATION ---
-    // The key is injected from the environment variable (js/config.js)
     const API_KEY = CONFIG.YT_KEY;
-    
-    // We are combining the search query with the channel name to limit results
-    // Example: "Tamarindi vs Corinthians 2025-03-12 torneiconti"
-    const query = `Tamarindi vs ${opponent} ${date} torneiconti`; 
-    
-    // We also use the channel handle in the search URL for better filtering
+    const query = `Tamarindi FC vs ${opponent} ${date} torneiconti`; 
     const channelHandle = '@torneiconti359'; 
+    
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${CONFIG.YT_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
 
     btn.textContent = "Searching...";
@@ -99,11 +122,11 @@ function loadVideo(btn, opponent, date) {
                     </iframe>`;
                 container.style.display = 'block';
                 btn.textContent = "▼ Hide Video";
-                btn.style.background = '#ff0000'; // Make it YouTube Red
+                btn.style.background = '#ff0000';
             } else {
                 btn.textContent = "Video Not Found";
-                btn.style.background = "#555"; // Grey out
-                btn.onclick = null; // Disable future clicks
+                btn.style.background = "#555";
+                btn.onclick = null;
             }
         })
         .catch(err => {
