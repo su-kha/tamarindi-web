@@ -69,7 +69,7 @@ function loadVideo(btn, opponent, date) {
     
     // We also use the channel handle in the search URL for better filtering
     const channelHandle = '@torneiconti359'; 
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${YT_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${CONFIG.YT_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
 
     btn.textContent = "Searching...";
 
