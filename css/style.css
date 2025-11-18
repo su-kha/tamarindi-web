@@ -244,3 +244,15 @@ table.stats-table th:hover {
     opacity: 1;
     color: var(--team-pink);
 }
+
+
+/* --- MATCH RESULT COLORS --- */
+.match-card.win-bg {
+    border-left: 8px solid #008000; /* Green Left Border */
+}
+.match-card.draw-bg {
+    border-left: 8px solid #ffc107; /* Yellow Left Border */
+}
+.match-card.loss-bg {
+    border-left: 8px solid #cc0000; /* Red Left Border */
+}
