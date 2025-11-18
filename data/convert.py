@@ -22,10 +22,9 @@ FILES_CONFIG = [
     {"key": "season_19_20", "filename": "statistiche calci8 2019-2020.xlsx", "skip": 4, "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'}}
 ]
 
-# --- HELPER FUNCTIONS ---
-
+# --- PLAYER STATS LOGIC ---
 def is_real_player(row):
-    # This logic is used to filter out competition names from the player stats section
+    # Filters out dates, competition titles, and empty rows.
     name = str(row['name']).strip()
     if name.startswith('202') or name.startswith('201') or name.startswith('200'): return False
     blacklist = ['Amichevoli', 'Torneo', 'Spring', 'Cup', 'Coppa', 'Playoff', 'Playout', 'Gironi', 'Ottavi', 'Quarti', 'Semifinale', 'Finale', 'Tamarindi']
@@ -34,16 +33,14 @@ def is_real_player(row):
     return True
 
 def process_player_stats(df, config):
-    # ... (player stats logic - kept separate but needs to be in final script)
     data = df.iloc[config['skip']:].copy()
     data = data.rename(columns=config['cols'])
     
-    required = ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']
-    for col in required:
+    for col in REQUIRED_COLUMNS:
         if col not in data.columns:
             data[col] = '-' if col == 'assists' else 0
             
-    data = data[required]
+    data = data[REQUIRED_COLUMNS]
     data = data.dropna(subset=['name'])
     data = data[data.apply(is_real_player, axis=1)]
     
@@ -52,21 +49,52 @@ def process_player_stats(df, config):
     
     for col in ['apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
         if str(data[col].iloc[0]) == '-': continue
-        data[col] = data[col].fillna(0).astype(int)
+        # Robustly convert stats to integers
+        data[col] = pd.to_numeric(data[col], errors='coerce').fillna(0).astype(int)
         
     return data.to_dict(orient='records')
 
+# --- HALL OF FAME FIX ---
+def process_all_time():
+    path = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
+    if not os.path.exists(path): return []
+    
+    try:
+        df = pd.read_excel(path, header=None)
+        data = df.iloc[3:].copy()
+        cols = {0: 'name', 2: 'role', 11: 'total_apps', 20: 'total_goals', 29: 'total_assists'}
+        
+        clean = data.rename(columns=cols)
+        clean = clean.dropna(subset=['name'])
 
+        # 1. CLEANING: Ensure name and role are strings
+        clean['name'] = clean['name'].astype(str)
+        clean['role'] = clean['role'].astype(str).str.strip().fillna('Player')
+        
+        # 2. FILTERING: Remove non-player rows by checking if 'total_apps' is actually a number
+        # If total_apps is junk (e.g., text header), pd.to_numeric makes it NaN, so we drop it.
+        clean = clean[pd.to_numeric(clean['total_apps'], errors='coerce').notna()]
+        
+        # 3. TITLE CASE: Fix capitalization (as requested)
+        clean['name'] = clean['name'].str.title()
+        
+        # 4. FINAL CONVERSION: Convert all stats to integers
+        for c in ['total_apps', 'total_goals', 'total_assists']:
+            clean[c] = pd.to_numeric(clean[c], errors='coerce').fillna(0).astype(int)
+            
+        return clean[['name', 'role', 'total_apps', 'total_goals', 'total_assists']].to_dict(orient='records')
+    except Exception as e:
+        # Catch and print the error specifically for Netlify log analysis
+        print(f"FATAL ERROR in Hall of Fame (process_all_time): {e}")
+        return []
+
+# --- MATCH LOGIC (Kept for completeness but should be refined next) ---
 def extract_matches(df, season_key):
     matches = []
     current_match = None
     
-    # Pre-process the DataFrame to combine Name and Number/Score (Col 0 and Col 4-6 are key)
-    
     for index, row in df.iterrows():
         val0 = str(row[0]).strip()
-        
-        # 1. Check if it's a Date (Start of a match) - Usually in Col 0
         is_date = False
         try:
             if isinstance(row[0], datetime.datetime) or (len(val0) >= 10 and val0[0:4].isdigit() and ('-' in val0 or '/' in val0)):
@@ -77,109 +105,82 @@ def extract_matches(df, season_key):
         if is_date:
             if current_match: matches.append(current_match)
             
-            # --- DETERMINE HOME/AWAY AND EXTRACT SCORE/OPPONENT ---
-            
-            # Look at Column 2 (usually the 'Home' team)
-            home_team = str(row[2]).strip() if not pd.isna(row[2]) else ''
-            
-            # Look at Column 4 (usually the 'Score')
-            score_col = str(row[4]).strip() if not pd.isna(row[4]) else ''
-            
+            score_col = str(row[4]).strip() if not pd.isna(row[4]) else '?-?'
             score_parts = score_col.split('-')
             
+            home_team = str(row[2]).strip() if not pd.isna(row[2]) else ''
+            
             if home_team.startswith('Tamarindi FC'):
-                # TAMARINDI (Col 2) | SCORE (Col 4) | OPPONENT (Col 5)
-                score = str(row[4]).strip() if not pd.isna(row[4]) else '?-?'
+                score = score_col
                 opponent = str(row[5]).strip() if not pd.isna(row[5]) else 'Unknown'
                 tamarindi_score = score_parts[0].strip()
                 result = 'W' if tamarindi_score > score_parts[1].strip() else ('D' if tamarindi_score == score_parts[1].strip() else 'L')
                 
             else:
-                # OPPONENT (Col 2) | SCORE (Col 4) | TAMARINDI (Col 6, maybe)
-                # In many of the files, the opponent is in Col 2 and score in Col 4/5
+                score = score_col
+                opponent = str(row[2]).strip()
+                tamarindi_score = score_parts[1].strip() if len(score_parts) == 2 else '?'
+                result = 'W' if score_parts[0].strip() < tamarindi_score else ('D' if score_parts[0].strip() == tamarindi_score else 'L')
                 
-                # Check for a "Home Score - Away Score" pattern
-                if len(score_parts) == 2 and score_parts[0].isdigit() and score_parts[1].isdigit():
-                    opponent = str(row[2]).strip()
-                    score = score_col
-                    tamarindi_score = score_parts[1].strip() # Away Score is second number
-                    result = 'W' if tamarindi_score > score_parts[0].strip() else ('D' if tamarindi_score == score_parts[0].strip() else 'L')
-                else:
-                    # Fallback for confusing formats (e.g. 2020-2021 file)
-                    opponent = str(row[5]).strip() if not pd.isna(row[5]) else 'Unknown'
-                    score = str(row[4]).strip() if not pd.isna(row[4]) else '?-?'
-                    result = '?'
-            
-            # Clean up date string
             date_str = str(row[0]).split(' ')[0] 
-            
+
             current_match = {
                 "date": date_str,
-                "opponent": opponent.replace('Tamarindi FC', '').strip(), # Ensure we don't have Tamarindi vs Tamarindi
+                "opponent": opponent.replace('Tamarindi FC', '').strip(),
                 "score": score,
                 "result": result,
                 "scorers": [],
                 "season": season_key
             }
         
-        # 2. If we are inside a match block, look for scorers (Col 2 or 5)
         elif current_match:
-            # Check Col 2 (for home matches) and Col 5 (for away matches)
             potential_scorer_home = str(row[2]).strip() if not pd.isna(row[2]) else ''
             potential_scorer_away = str(row[5]).strip() if not pd.isna(row[5]) else ''
 
             scorer = None
             if potential_scorer_home and not re.match(r'[A-Za-z]', potential_scorer_home) is None:
                  scorer = potential_scorer_home
-            elif potential_scorer_away and not re.match(r'[A-Za-z]', potential_scorer_away) is None:
+            elif potential_scorer_away and not pd.isna(row[5]) and not re.match(r'[A-Za-z]', potential_scorer_away) is None:
                  scorer = potential_scorer_away
                  
-            # Add scorer if valid
-            if scorer:
-                # Check if it's a team/competition name instead of a person
-                if not any(word in scorer for word in ['Tamarindi', 'Campana', 'Cutroni', 'Scocco', 'Ciolli', 'Iannuccelli', 'Gioffredi', 'D\'Amato', 'Botta', 'Autogol', 'Autogol P.', 'Colella']):
-                     # Skip things that look like team names or junk
-                     if len(scorer) < 15 and 'FC' not in scorer and 'Club' not in scorer:
-                          current_match['scorers'].append(scorer.strip().replace('  ',' ').title())
+            if scorer and not any(word in scorer for word in ['Tamarindi', 'Campioni', 'Club', 'FC', 'Coppa']):
+                 current_match['scorers'].append(scorer.strip().replace('  ',' ').title())
 
 
-    # Append the last match found
     if current_match: matches.append(current_match)
-        
-    # Final cleanup (remove matches with incomplete data)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
+
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
+    print("Starting conversion...")
     final_data = {}
     all_matches = []
     
+    # Process Seasons
     for config in FILES_CONFIG:
         path = os.path.join(BASE_DIR, config['filename'])
         if not os.path.exists(path): continue
         
         try:
             df = pd.read_excel(path, header=None)
-            
-            # 1. Get Players
             final_data[config['key']] = process_player_stats(df, config)
-            
-            # 2. Get Matches
             season_matches = extract_matches(df, config['key'])
             all_matches.extend(season_matches)
             
         except Exception as e:
             print(f"Error processing {config['key']}: {e}")
-            print(f"Last row processed: {df.iloc[-1].to_string()}") # Helpful for debugging
     
-    # Sort all matches by date (Newest first)
+    # Process All Time (Hall of Fame)
+    final_data['all_time'] = process_all_time()
+    
+    # Finalize Matches
     all_matches.sort(key=lambda x: x['date'], reverse=True)
     final_data['matches'] = all_matches
     
-    # Process All Time (assuming you kept the previous process_all_time code)
-    # ... (Re-insert your final process_all_time code here)
-    
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+    # Save JSON
+    output_path = os.path.join(BASE_DIR, 'team_stats.json')
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
         
-    print("Done! All data extracted and formatted.")
+    print("Done! Data conversion complete.")
