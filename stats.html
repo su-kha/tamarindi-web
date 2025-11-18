@@ -65,48 +65,32 @@
         <div class="content-wrapper" style="display:block;">
             <a href="index.html" style="display:inline-block; margin-bottom:15px; color:black;">&larr; Back Home</a>
 
-            <div class="tabs">
-                <button class="tab-btn active" onclick="showTab('season')">Season 24/25</button>
-                <button class="tab-btn" onclick="showTab('alltime')">All Time Records</button>
+            <div style="margin-bottom: 20px; padding: 15px; background: #eee; border: 2px solid black; display:flex; gap:10px; align-items:center;">
+                <label for="season-select" style="font-weight:bold;">VIEW:</label>
+                <select id="season-select" onchange="changeSeason()" style="padding: 5px; font-family: 'Courier New'; font-weight:bold;">
+                    <option value="season_24_25">Season 2024/2025 (Current)</option>
+                    <option value="all_time">Hall of Fame (All Time)</option>
+                    <option disabled>──────────</option>
+                    <option value="season_25_26">Season 2025/2026</option>
+                    <option value="season_23_24">Season 2023/2024</option>
+                    <option value="season_22_23">Season 2022/2023</option>
+                    <option value="season_21_22">Season 2021/2022</option>
+                    <option value="season_20_21">Season 2020/2021</option>
+                    <option value="season_19_20">Season 2019/2020</option>
+                </select>
             </div>
 
-            <div id="season-view" class="stats-table-container">
-                <h3>Season 2024 / 2025</h3>
+            <div class="stats-table-container">
+                <h3 id="table-title">Season Stats</h3>
+                
                 <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>#</th>
-                            <th>Apps</th>
-                            <th>Goals</th>
-                            <th>Assists</th>
-                            <th>Yel</th>
-                            <th>Red</th>
-                        </tr>
-                    </thead>
-                    <tbody id="season-body">
-                        <tr><td colspan="7">Loading data...</td></tr>
+                    <thead id="table-head">
+                        </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="7">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
-
-            <div id="alltime-view" class="stats-table-container hidden">
-                <h3>Hall of Fame (All Time)</h3>
-                <table class="stats-table">
-                    <thead>
-                        <tr>
-                            <th>Player</th>
-                            <th>Role</th>
-                            <th>Total Apps</th>
-                            <th>Total Goals</th>
-                            <th>Total Assists</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alltime-body">
-                        </tbody>
-                </table>
-            </div>
-
         </div>
 
         <footer>

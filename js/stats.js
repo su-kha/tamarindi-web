@@ -1,81 +1,85 @@
+let globalData = {};
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("Stats page loaded");
-    
-    // 1. Fetch the JSON data
     fetch('data/team_stats.json')
         .then(response => response.json())
         .then(data => {
-            console.log("Data loaded:", data);
-            renderSeasonTable(data.season_24_25);
-            renderAllTimeTable(data.all_time);
+            globalData = data;
+            // Load default (Current Season)
+            renderTable('season_24_25');
         })
-        .catch(error => {
-            console.error("Error loading stats:", error);
-            document.getElementById('season-body').innerHTML = "<tr><td colspan='7'>Error loading data. Please check console.</td></tr>";
-        });
+        .catch(err => console.error("Error:", err));
 });
 
-// Function to build the Current Season table
-function renderSeasonTable(players) {
-    const tbody = document.getElementById('season-body');
-    tbody.innerHTML = ''; // Clear "Loading..."
-
-    // Sort by Goals (highest first) by default
-    players.sort((a, b) => b.goals - a.goals);
-
-    players.forEach(player => {
-        const row = `
-            <tr>
-                <td>${player.name}</td>
-                <td>${player.number}</td>
-                <td>${player.apps}</td>
-                <td style="font-weight:bold; background:#fff0f5;">${player.goals}</td>
-                <td>${player.assists}</td>
-                <td>${player.yellow_cards}</td>
-                <td>${player.red_cards}</td>
-            </tr>
-        `;
-        tbody.innerHTML += row;
-    });
+function changeSeason() {
+    const selected = document.getElementById('season-select').value;
+    renderTable(selected);
 }
 
-// Function to build the All Time table
-function renderAllTimeTable(players) {
-    const tbody = document.getElementById('alltime-body');
-    tbody.innerHTML = ''; 
-
-    // Sort by Total Apps by default
-    players.sort((a, b) => b.total_apps - a.total_apps);
-
-    players.forEach(player => {
-        const row = `
-            <tr>
-                <td>${player.name}</td>
-                <td style="font-size:0.8rem; font-style:italic;">${player.role}</td>
-                <td style="font-weight:bold; background:#fff0f5;">${player.total_apps}</td>
-                <td>${player.total_goals}</td>
-                <td>${player.total_assists}</td>
-            </tr>
-        `;
-        tbody.innerHTML += row;
-    });
-}
-
-// Tab Switching Logic
-window.showTab = function(tabName) {
-    // Hide all
-    document.getElementById('season-view').classList.add('hidden');
-    document.getElementById('alltime-view').classList.add('hidden');
+function renderTable(key) {
+    const tbody = document.getElementById('table-body');
+    const thead = document.getElementById('table-head');
+    const title = document.getElementById('table-title');
     
-    // Remove active class from buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    tbody.innerHTML = '';
+    const players = globalData[key] || [];
 
-    // Show selected
-    if (tabName === 'season') {
-        document.getElementById('season-view').classList.remove('hidden');
-        document.querySelector('button[onclick="showTab(\'season\')"]').classList.add('active');
+    // --- A. ALL TIME TABLE ---
+    if (key === 'all_time') {
+        title.textContent = "Hall of Fame (All Time)";
+        thead.innerHTML = `
+            <tr>
+                <th>Player</th>
+                <th>Role</th>
+                <th>Apps</th>
+                <th>Goals</th>
+                <th>Assists</th>
+            </tr>`;
+        
+        players.sort((a, b) => b.total_apps - a.total_apps); // Sort by Apps
+        
+        players.forEach(p => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:left; font-weight:bold;">${p.name}</td>
+                    <td style="font-size:0.8rem;">${p.role}</td>
+                    <td style="background:#fff0f5; font-weight:bold;">${p.total_apps}</td>
+                    <td>${p.total_goals}</td>
+                    <td>${p.total_assists}</td>
+                </tr>`;
+        });
+
+    // --- B. SEASON TABLES ---
     } else {
-        document.getElementById('alltime-view').classList.remove('hidden');
-        document.querySelector('button[onclick="showTab(\'alltime\')"]').classList.add('active');
+        title.textContent = key.replace('season_', 'Season ').replace('_', '/');
+        thead.innerHTML = `
+            <tr>
+                <th>Player</th>
+                <th>#</th>
+                <th>Apps</th>
+                <th>Goals</th>
+                <th>Assists</th>
+                <th>Yel</th>
+                <th>Red</th>
+            </tr>`;
+
+        players.sort((a, b) => b.goals - a.goals); // Sort by Goals
+        
+        players.forEach(p => {
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:left; font-weight:bold;">${p.name}</td>
+                    <td>${p.number}</td>
+                    <td>${p.apps}</td>
+                    <td style="background:#fff0f5; font-weight:bold;">${p.goals}</td>
+                    <td>${p.assists}</td>
+                    <td>${p.yellow_cards}</td>
+                    <td>${p.red_cards}</td>
+                </tr>`;
+        });
+    }
+    
+    if (players.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>No data available for this season.</td></tr>";
     }
 }
