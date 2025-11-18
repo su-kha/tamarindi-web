@@ -24,28 +24,33 @@ function renderMatches(matches) {
         let scoreDisplay = match.score;
         let shootoutDisplay = '';
         
-        // NEW: Check if it went to a shootout
         if (match.shootout_score) {
-            // Display the regular time score and then the full shootout score
             scoreDisplay = `FT: ${match.score}`;
-            shootoutDisplay = `<div style="font-size:1.4rem; font-weight:bold; color:black;">SO: ${match.shootout_score.split('+')[1].strip()}</div>`;
+            shootoutDisplay = `<div style="font-size:1.4rem; font-weight:bold; color:black;">SO: ${match.shootout_score.split('+')[-1].strip()}</div>`;
         }
 
         // --- 2. Scorer HTML (Penalties/Goals) ---
         let scorersHtml = '';
-        if (match.scorers.length > 0) {
-            let normalGoals = match.scorers.filter(s => !s.includes('(Pen)')).join(', ');
-            let penalties = match.scorers.filter(s => s.includes('(Pen)')).map(s => s.replace(' (Pen)', '')).join(', ');
-            
-            if (normalGoals) {
-                scorersHtml += '<div style="font-weight:bold;">⚽ Goals:</div>';
-                scorersHtml += `<div style="margin-left: 10px; margin-bottom: 5px;">${normalGoals}</div>`;
-            }
-            if (penalties) {
-                scorersHtml += '<div style="font-weight:bold; color:#ff00aa;">🎯 Penalties:</div>';
-                scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${penalties}</div>`;
-            }
+        
+        // --- 2a. Goals & Penalties ---
+        let normalGoals = match.scorers.filter(s => !s.includes('(Pen)')).join(', ');
+        let penalties = match.scorers.filter(s => s.includes('(Pen)')).map(s => s.replace(' (Pen)', '')).join(', ');
+        
+        if (normalGoals) {
+            scorersHtml += '<div style="font-weight:bold;">⚽ Goals:</div>';
+            scorersHtml += `<div style="margin-left: 10px; margin-bottom: 5px;">${normalGoals}</div>`;
         }
+        if (penalties) {
+            scorersHtml += '<div style="font-weight:bold; color:#ff00aa;">🎯 Penalties:</div>';
+            scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${penalties}</div>`;
+        }
+        
+        // --- 2b. Saved Penalties (NEW DISPLAY) ---
+        if (match.saved_penalty_goalkeepers.length > 0) {
+             scorersHtml += '<div style="font-weight:bold; color:#0056b3;">🧤 Penalty Saved:</div>';
+             scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${match.saved_penalty_goalkeepers.join(', ')}</div>`;
+        }
+
 
         // --- 3. Card HTML ---
         let cardsHtml = '';
