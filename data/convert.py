@@ -6,9 +6,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_FILE = os.path.join(BASE_DIR, 'team_stats.json')
 
-# We define how to read each specific file here
-# 'skip': number of rows to ignore at the top (to skip messy headers)
-# 'cols': mapping of Excel column index to our JSON field names
+# Standard columns we need for the website
+REQUIRED_COLUMNS = ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']
+
 FILES_CONFIG = [
     {
         "key": "season_25_26",
@@ -43,37 +43,25 @@ FILES_CONFIG = [
     {
         "key": "season_20_21",
         "filename": "Rosa e Stats 2020-2021.xlsx",
-        "skip": 7, # Data starts lower in this file
+        "skip": 7,
         "cols": {0: 'name', 3: 'number', 7: 'apps', 12: 'goals', 14: 'assists', 17: 'yellow_cards', 18: 'red_cards'}
     },
     {
         "key": "season_19_20",
         "filename": "statistiche calci8 2019-2020.xlsx",
         "skip": 4, 
-        "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} # No assists this year
+        "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} # No assists!
     }
 ]
 
 def is_real_player(row):
-    """
-    Filters out dates, competition titles, and empty rows.
-    """
     name = str(row['name']).strip()
+    if name.startswith('202') or name.startswith('201'): return False
     
-    # 1. Check if name is a Date (starts with 202...)
-    if name.startswith('202') or name.startswith('201'):
-        return False
-        
-    # 2. Check for common competition keywords
     blacklist = ['Amichevoli', 'Torneo', 'Spring', 'Cup', 'Coppa', 'Playoff', 'Playout', 'Gironi', 'Ottavi', 'Quarti', 'Semifinale', 'Finale']
-    if any(word in name for word in blacklist):
-        return False
-        
-    # 3. CRITICAL: A player must have "Apps" (Presenze). 
-    # Competition headers like "Spring Cup" usually have NaN in the stats columns.
-    if pd.isna(row.get('apps')) or str(row.get('apps')).strip() == '':
-        return False
-        
+    if any(word in name for word in blacklist): return False
+    
+    if pd.isna(row.get('apps')) or str(row.get('apps')).strip() == '': return False
     return True
 
 def process_file(config):
@@ -83,32 +71,24 @@ def process_file(config):
         return []
 
     try:
-        # Read file
         df = pd.read_excel(file_path, header=None)
         
-        # Slice data starting from the 'skip' row
+        # 1. Slice and Rename
         data = df.iloc[config['skip']:].copy()
-        
-        # Rename columns based on config
         data = data.rename(columns=config['cols'])
         
-        # Keep only the columns we need
-        needed_cols = list(config['cols'].values())
-        # Add missing columns (like 'assists' for 19/20) with 0
-        for needed in ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
-            if needed not in data.columns:
-                data[needed] = 0
-                
-        data = data[needed_cols]
+        # 2. Ensure ALL required columns exist (Fill missing ones with 0)
+        for col in REQUIRED_COLUMNS:
+            if col not in data.columns:
+                data[col] = 0
+        
+        # 3. Keep ONLY the standard columns (Sorts them neatly too)
+        data = data[REQUIRED_COLUMNS]
         
         # --- CLEANING ---
-        # 1. Drop rows with no name
         data = data.dropna(subset=['name'])
-        
-        # 2. Apply the "Is Real Player" filter
         data = data[data.apply(is_real_player, axis=1)]
         
-        # 3. Clean up numbers
         data['name'] = data['name'].astype(str)
         data['number'] = data['number'].fillna('-').astype(str).str.replace('.0', '', regex=False)
         
@@ -134,6 +114,9 @@ def process_all_time():
         clean = clean.dropna(subset=['name'])
         clean = clean[clean['name'].astype(str).str.strip() != '']
         
+        # Filter out date rows in All Time too, just in case
+        clean = clean[~clean['name'].astype(str).str.startswith('20')]
+        
         for c in ['total_apps', 'total_goals', 'total_assists']:
             clean[c] = clean[c].fillna(0).astype(int)
             
@@ -146,12 +129,10 @@ def process_all_time():
 if __name__ == "__main__":
     final_data = {}
     
-    # Process Seasons
     for config in FILES_CONFIG:
         print(f"Processing {config['key']}...")
         final_data[config['key']] = process_file(config)
         
-    # Process All Time
     print("Processing All Time...")
     final_data['all_time'] = process_all_time()
     
