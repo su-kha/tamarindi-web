@@ -1,7 +1,7 @@
 [build]
-  # 1. Install libraries
-  # 2. Run your script to turn Excel into JSON
-  command = "pip install -r requirements.txt && python data/convert.py"
+  # 1. Create a config.js file with the key
+  # 2. Install python libraries
+  # 3. Run the python converter
+  command = "echo \"const CONFIG = { YT_KEY: '$YOUTUBE_API_KEY' };\" > js/config.js && pip install -r requirements.txt && python data/convert.py"
   
-  # The folder that actually contains the index.html (which is your root folder)
   publish = "."
