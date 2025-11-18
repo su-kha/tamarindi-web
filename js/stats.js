@@ -15,13 +15,11 @@ document.addEventListener('DOMContentLoaded', function() {
             globalData = data;
             
             // Default to Current Season (25/26)
-            // Ensure this matches the "value" in your HTML select dropdown
             renderTable('season_25_26'); 
         })
         .catch(err => console.error("Error loading stats:", err));
 });
 
-// Triggered when user changes the dropdown
 function changeSeason() {
     const selected = document.getElementById('season-select').value;
     
@@ -35,18 +33,15 @@ function changeSeason() {
     renderTable(selected);
 }
 
-// Triggered when user clicks a table header
 function handleSort(column) {
-    // If clicking the same column, toggle direction
     if (currentSort.column === column) {
         currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
     } else {
-        // New column? Default to High-to-Low
         currentSort.column = column;
-        currentSort.direction = 'desc';
+        // If sorting by Name, default to A-Z (asc). Numbers default to High-to-Low (desc)
+        currentSort.direction = column === 'name' || column === 'number' ? 'asc' : 'desc';
     }
     
-    // Re-render the current view
     const currentView = document.getElementById('season-select').value;
     renderTable(currentView);
 }
@@ -56,25 +51,35 @@ function renderTable(key) {
     const thead = document.getElementById('table-head');
     const title = document.getElementById('table-title');
     
-    // Safety check
     if (!globalData[key]) return;
 
-    const players = [...globalData[key]]; // Create a copy to sort safely
+    const players = [...globalData[key]]; 
 
-    // --- 1. SORTING LOGIC ---
+    // --- SORTING LOGIC ---
     players.sort((a, b) => {
         let valA = a[currentSort.column];
         let valB = b[currentSort.column];
 
         // Helper to clean values for sorting
-        const clean = (v) => {
-            if (v === '-') return -1; // Treat '-' as lowest possible number
-            if (typeof v === 'string') return v.toLowerCase();
+        const clean = (v, colName) => {
+            if (v === '-' || v === null || v === undefined) return -999; // Treat '-' as lowest
+            
+            // IF it's the Shirt Number, force it to be a real number for sorting
+            if (colName === 'number') {
+                return parseInt(v, 10) || 0;
+            }
+
+            // If string, make lowercase for fair comparison
+            if (typeof v === 'string') {
+                 // Check if it's actually a number string like "10"
+                 if (!isNaN(v) && v.trim() !== '') return parseFloat(v);
+                 return v.toLowerCase();
+            }
             return v;
         };
 
-        valA = clean(valA);
-        valB = clean(valB);
+        valA = clean(valA, currentSort.column);
+        valB = clean(valB, currentSort.column);
 
         if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
         if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
@@ -82,18 +87,15 @@ function renderTable(key) {
     });
 
 
-    // --- 2. BUILD HEADERS (With Arrows) ---
-    // Helper function to create clickable headers
+    // --- RENDER HEADERS ---
     const createHeader = (label, colName) => {
         let arrow = '';
         if (currentSort.column === colName) {
             arrow = currentSort.direction === 'asc' ? ' ▲' : ' ▼';
         }
-        // Note: We pass the column name to handleSort()
         return `<th onclick="handleSort('${colName}')">${label} <span class="sort-icon${currentSort.column === colName ? ' active' : ''}">${arrow}</span></th>`;
     };
 
-    // Render All Time Headers
     if (key === 'all_time') {
         title.textContent = "Hall of Fame (All Time)";
         thead.innerHTML = `
@@ -117,7 +119,6 @@ function renderTable(key) {
                 </tr>`;
         });
 
-    // Render Season Headers
     } else {
         title.textContent = key.replace('season_', 'Season ').replace('_', '/');
         thead.innerHTML = `
