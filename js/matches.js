@@ -26,7 +26,13 @@ function renderMatches(matches) {
         
         if (match.shootout_score) {
             scoreDisplay = `FT: ${match.score}`;
-            shootoutDisplay = `<div style="font-size:1.4rem; font-weight:bold; color:black;">SO: ${match.shootout_score.split('+')[-1].strip()}</div>`;
+            
+            // Split the string by '+'
+            const parts = match.shootout_score.split('+');
+            // Get the last part using .pop() or index logic, and use .trim()
+            const soScore = parts[parts.length - 1].trim();
+            
+            shootoutDisplay = `<div style="font-size:1.4rem; font-weight:bold; color:black;">SO: ${soScore}</div>`;
         }
 
         // --- 2. Scorer HTML (Penalties/Goals) ---
