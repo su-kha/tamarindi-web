@@ -1,5 +1,3 @@
-// handle fetching Excel/JSON data
-
 console.log("chi pianta tamarindi, non raccoglie tamarindi");
 
 // Wait for the DOM (HTML) to be fully loaded

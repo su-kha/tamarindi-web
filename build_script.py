@@ -9,7 +9,8 @@ import numpy as np
 
 # --- CONFIGURATION & SETTINGS ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_FILE = os.path.join(BASE_DIR, 'team_stats.json')
+DATA_DIR = os.path.join(BASE_DIR, 'data/')
+OUTPUT_FILE = os.path.join(DATA_DIR, 'website_data_cache.json')
 
 REQUIRED_COLUMNS = ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']
 
@@ -56,7 +57,7 @@ def process_player_stats(df, config):
     return data.to_dict(orient='records')
 
 def process_all_time():
-    path = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
+    path = os.path.join(DATA_DIR, 'STATS TOTALI.xlsx')
     if not os.path.exists(path): return []
     
     try:
@@ -336,6 +337,37 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
         
     return all_matches
 
+# --- NEW: AUTO-INJECT BACK TO TOP SCRIPT ---
+def inject_back_to_top_script():
+    """
+    Scans the root directory for HTML files and injects the 
+    back_to_top.js script tag if it's missing.
+    """
+    # Go up one level from 'data/' to the root folder
+    root_dir = os.path.dirname(BASE_DIR)
+    
+    print(f"Scanning for HTML files in: {root_dir}")
+    
+    for filename in os.listdir(root_dir):
+        if filename.endswith(".html"):
+            filepath = os.path.join(root_dir, filename)
+            
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Only inject if not already there
+                if 'js/back_to_top.js' not in content:
+                    # Find the closing body tag and insert before it
+                    if '</body>' in content:
+                        new_content = content.replace('</body>', '<script src="js/back_to_top.js"></script>\n</body>')
+                        
+                        with open(filepath, 'w', encoding='utf-8') as f:
+                            f.write(new_content)
+                        print(f" -> Injected Back-to-Top into {filename}")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
+
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
@@ -344,7 +376,7 @@ if __name__ == "__main__":
     all_matches = []
     
     for config in FILES_CONFIG:
-        path = os.path.join(BASE_DIR, config['filename'])
+        path = os.path.join(DATA_DIR, config['filename'])
         if not os.path.exists(path): continue
         
         try:
@@ -372,8 +404,10 @@ if __name__ == "__main__":
     all_matches.sort(key=lambda x: x['date'], reverse=True)
     final_data['matches'] = all_matches
     
-    output_path = os.path.join(BASE_DIR, 'website_data_cache.json')
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
+
+    # Run the injector
+    inject_back_to_top_script()
         
     print("Done! Data conversion complete.")
