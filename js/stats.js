@@ -9,7 +9,7 @@ let currentSort = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Stats page loaded");
     
-    fetch('data/team_stats.json')
+    fetch('data/website_data_cache.json')
         .then(response => response.json())
         .then(data => {
             globalData = data;

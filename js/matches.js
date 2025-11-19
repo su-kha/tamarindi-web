@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('data/team_stats.json')
+    fetch('data/website_data_cache.json')
         .then(response => response.json())
         .then(data => {
             if(data.matches) {
@@ -32,7 +32,7 @@ function renderMatches(matches) {
             // Get the last part using .pop() or index logic, and use .trim()
             const soScore = parts[parts.length - 1].trim();
             
-            shootoutDisplay = `<div style="font-size:0.9rem; color:#444; margin-top:4px;">(${soScore})</div>`;
+            shootoutDisplay = `<div style="font-size:0.9rem; color:#444; margin-top:4px;">${soScore}</div>`;
         }
 
         // --- 2. Scorer HTML (Penalties/Goals) ---
@@ -101,7 +101,8 @@ function renderMatches(matches) {
                 class="yt-button" 
                 onclick="loadVideo(this, '${match.opponent}', '${match.date}')"
                 data-opponent="${match.opponent}"
-                data-date="${match.date}">
+                data-date="${match.date}"
+                data-video-id="${match.videoId}">>
                 ▶ Search Highlights
             </div>
             <div class="video-container"></div>
@@ -110,51 +111,30 @@ function renderMatches(matches) {
     });
 }
 
-// (The loadVideo function remains the same)
+// --- NEW LOAD VIDEO FUNCTION (No API Call, just Embed) ---
 function loadVideo(btn, opponent, date) {
     const container = btn.nextElementSibling;
-    
+    const videoId = btn.getAttribute('data-video-id'); // Get the ID saved from the JSON
+
     if (container.innerHTML !== '') {
         container.style.display = container.style.display === 'none' ? 'block' : 'none';
         btn.textContent = container.style.display === 'none' ? "▶ Show Video" : "▼ Hide Video";
         return;
     }
 
-    const API_KEY = CONFIG.YT_KEY;
-    const query = `Tamarindi FC vs ${opponent} ${date} torneiconti`; 
-    const channelHandle = '@torneiconti359'; 
-    
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${API_KEY}&type=video&maxResults=1&channelId=${channelHandle}`;
-
-    btn.textContent = "Searching...";
-
-    fetch(url)
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            return res.json();
-        })
-        .then(data => {
-            if (data.items && data.items.length > 0 && data.items[0].snippet.channelTitle.includes('Tornei Conti')) {
-                const videoId = data.items[0].id.videoId;
-                
-                container.innerHTML = `
-                    <iframe 
-                        src="https://www.youtube.com/embed/${videoId}" 
-                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                    </iframe>`;
-                container.style.display = 'block';
-                btn.textContent = "▼ Hide Video";
-                btn.style.background = '#ff0000';
-            } else {
-                btn.textContent = "Video Not Found";
-                btn.style.background = "#555";
-                btn.onclick = null;
-            }
-        })
-        .catch(err => {
-            console.error("API Error:", err);
-            btn.textContent = "API Error";
-            btn.style.background = "black";
-        });
+    if (videoId && videoId !== 'None') {
+        container.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}" 
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>`;
+        container.style.display = 'block';
+        btn.textContent = "▼ Hide Video";
+        btn.style.background = '#ff0000';
+    } else {
+        btn.textContent = "Video Not Found";
+        btn.style.background = "#555";
+        btn.onclick = null;
+    }
 }

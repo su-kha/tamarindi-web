@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import os
+import requests
+from thefuzz import fuzz
 import datetime
 import re
 import numpy as np
@@ -193,7 +195,9 @@ def extract_matches(df, season_key):
             # --- Normal Card/Goal Parsing ---
             # 19/20 format places all player events (scorers/cards) in Col 4 (Home) or Col 6 (Away)
             if season_key == 'season_19_20':
-                scorer_col_value = str(row[4]).strip() if current_match['home_status'] == 'Home' else str(row[6]).strip()
+                potential_scorer_home = str(row[4]).strip() if not pd.isna(row[2]) else ''
+                potential_scorer_away = str(row[6]).strip() if not pd.isna(row[5]) else ''
+                scorer_col_value = potential_scorer_home if current_match['home_status'] == 'Home' else potential_scorer_away
             else:
                 # Other seasons use Col 2 (Home) or Col 5 (Away)
                 potential_scorer_home = str(row[2]).strip() if not pd.isna(row[2]) else ''
@@ -240,6 +244,99 @@ def extract_matches(df, season_key):
     if current_match: matches.append(current_match)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
 
+# --- NEW: FUZZY MATCHING HELPER ---
+def fuzzy_match(match_title, video_title):
+    """Calculates a match score based on relevant keywords."""
+    
+    # 1. Standardize titles (remove years, etc., to focus on team names)
+    standard_match = re.sub(r'20\d{2}', '', match_title).lower()
+    standard_video = re.sub(r'20\d{2}', '', video_title).lower()
+    
+    # Simple check for required keywords
+    if 'tamarindi' not in standard_video:
+        return 0
+    
+    # Use partial ratio for better results when titles include extra text (like 'Highlights')
+    ratio = fuzz.partial_ratio(standard_match, standard_video)
+    
+    return ratio
+
+# --- NEW: YOUTUBE FETCHER ---
+def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
+    """Fetches all videos from the channel's upload playlist and links them to matches."""
+    
+    # 1. Get Uploads Playlist ID (Channel ID is used to find the uploads playlist)
+    url = f"https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id={channel_id}&key={api_key}"
+    response = requests.get(url)
+    if response.status_code != 200:
+        print(f"Error fetching channel details: {response.text}")
+        return all_matches
+    
+    channel_data = response.json()
+    if not channel_data.get('items'):
+        print("Error: Channel not found or API issue.")
+        return all_matches
+
+    uploads_playlist_id = channel_data['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    
+    # 2. Fetch all Videos from Playlist (Low cost: 1 unit per 50 items)
+    all_videos = []
+    next_page_token = None
+    start_date = datetime.datetime(2023, 8, 1, 0, 0, 0, tzinfo=datetime.timezone.utc) # Start of 23/24 season
+
+    while True:
+        playlist_url = f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId={uploads_playlist_id}&key={api_key}"
+        if next_page_token:
+            playlist_url += f"&pageToken={next_page_token}"
+            
+        response = requests.get(playlist_url)
+        if response.status_code != 200:
+            print(f"Error fetching playlist items: {response.text}")
+            break
+            
+        playlist_data = response.json()
+        
+        for item in playlist_data.get('items', []):
+            published_at = datetime.datetime.fromisoformat(item['snippet']['publishedAt'].replace('Z', '+00:00'))
+            
+            # Filter by publish date (Start of 2023/2024 season)
+            if published_at >= start_date:
+                all_videos.append({
+                    'title': item['snippet']['title'],
+                    'videoId': item['snippet']['resourceId']['videoId'],
+                    'publishedAt': published_at
+                })
+            elif published_at < start_date:
+                # Since videos are listed newest first, we can stop fetching old videos
+                next_page_token = None
+                break
+        
+        next_page_token = playlist_data.get('nextPageToken')
+        if not next_page_token:
+            break
+
+    # 3. Match Videos to Excel Data
+    print(f"Found {len(all_videos)} videos since 2023-08-01. Starting fuzzy match...")
+    
+    for match in all_matches:
+        # Construct the ideal search query from Excel data
+        search_query = f"{match['opponent']} {match['date']}"
+        best_score = 0
+        best_video_id = None
+        
+        for video in all_videos:
+            score = fuzzy_match(search_query, video['title'])
+            
+            if score > best_score and score > 75: # Requires a decent confidence score
+                best_score = score
+                best_video_id = video['videoId']
+        
+        # Inject the best video ID back into the match data
+        match['videoId'] = best_video_id
+        match['match_score'] = best_score # Optional debug field
+        
+    return all_matches
+
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
@@ -262,10 +359,21 @@ if __name__ == "__main__":
     
     final_data['all_time'] = process_all_time()
     
+    # --- YouTube API Integration (Build-Time Fetch) ---
+    youtube_api_key = os.environ.get('YOUTUBE_API_KEY')
+    youtube_channel_id = os.environ.get('TORNEICONTI_CHANNEL_ID')
+    
+    if youtube_api_key and youtube_channel_id:
+        print("API keys found. Fetching YouTube video list...")
+        all_matches = fetch_youtube_videos_and_link(all_matches, youtube_api_key, youtube_channel_id)
+    else:
+        print("WARNING: YOUTUBE_API_KEY or CHANNEL_ID not found in environment variables. Skipping video fetch.")
+        
+    # Finalize Matches (Sorts and saves all_matches, now with video IDs)
     all_matches.sort(key=lambda x: x['date'], reverse=True)
     final_data['matches'] = all_matches
     
-    output_path = os.path.join(BASE_DIR, 'team_stats.json')
+    output_path = os.path.join(BASE_DIR, 'website_data_cache.json')
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
         
