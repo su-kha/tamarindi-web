@@ -11,7 +11,7 @@ OUTPUT_FILE = os.path.join(BASE_DIR, 'team_stats.json')
 
 REQUIRED_COLUMNS = ['name', 'number', 'apps', 'goals', 'assists', 'yellow_cards', 'red_cards']
 
-# Map of all season files and their unique column structure
+# Map of all season files and their unique column structure (remains the same)
 FILES_CONFIG = [
     {"key": "season_25_26", "filename": "STATS 25-26.xlsx", "skip": 3, "cols": {0: 'name', 3: 'number', 6: 'apps', 12: 'goals', 18: 'assists', 21: 'yellow_cards', 22: 'red_cards'}},
     {"key": "season_24_25", "filename": "STATS 24-25.xlsx", "skip": 3, "cols": {0: 'name', 3: 'number', 6: 'apps', 12: 'goals', 18: 'assists', 21: 'yellow_cards', 22: 'red_cards'}},
@@ -19,11 +19,67 @@ FILES_CONFIG = [
     {"key": "season_22_23", "filename": "STATS 2022-23.xlsx", "skip": 3, "cols": {0: 'name', 3: 'number', 6: 'apps', 11: 'goals', 18: 'assists', 21: 'yellow_cards', 22: 'red_cards'} },
     {"key": "season_21_22", "filename": "STATS 2021-22.xlsx", "skip": 3, "cols": {0: 'name', 3: 'number', 6: 'apps', 11: 'goals', 16: 'assists', 19: 'yellow_cards', 20: 'red_cards'} },
     {"key": "season_20_21", "filename": "Rosa e Stats 2020-2021.xlsx", "skip": 7, "cols": {0: 'name', 3: 'number', 7: 'apps', 12: 'goals', 14: 'assists', 17: 'yellow_cards', 18: 'red_cards'} },
-    {"key": "season_19_20", "filename": "statistiche calci8 2019-2020.xlsx", "skip": 4, "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'}} # No assists
+    {"key": "season_19_20", "filename": "statistiche calci8 2019-2020.xlsx", "skip": 4, "cols": {0: 'name', 3: 'number', 7: 'apps', 9: 'goals', 12: 'yellow_cards', 13: 'red_cards'} }
 ]
 
-# (Other player processing functions remain unchanged)
+# (Other player processing functions remain unchanged for brevity)
 
+def is_real_player(row):
+    name = str(row['name']).strip()
+    if name.startswith('202') or name.startswith('201') or name.startswith('200'): return False
+    blacklist = ['Amichevoli', 'Torneo', 'Spring', 'Cup', 'Coppa', 'Playoff', 'Playout', 'Gironi', 'Ottavi', 'Quarti', 'Semifinale', 'Finale', 'Tamarindi']
+    if any(word in name for word in blacklist): return False
+    if pd.isna(row.get('apps')) or str(row.get('apps')).strip() == '': return False
+    return True
+
+def process_player_stats(df, config):
+    data = df.iloc[config['skip']:].copy()
+    data = data.rename(columns=config['cols'])
+    
+    for col in REQUIRED_COLUMNS:
+        if col not in data.columns:
+            data[col] = '-' if col == 'assists' else 0
+            
+    data = data[REQUIRED_COLUMNS]
+    data = data.dropna(subset=['name'])
+    data = data[data.apply(is_real_player, axis=1)]
+    
+    data['name'] = data['name'].astype(str).str.title() 
+    data['number'] = data['number'].fillna('-').astype(str).str.replace('.0', '', regex=False)
+    
+    for col in ['apps', 'goals', 'assists', 'yellow_cards', 'red_cards']:
+        if str(data[col].iloc[0]) == '-': continue
+        data[col] = pd.to_numeric(data[col], errors='coerce').fillna(0).astype(int)
+        
+    return data.to_dict(orient='records')
+
+def process_all_time():
+    path = os.path.join(BASE_DIR, 'STATS TOTALI.xlsx')
+    if not os.path.exists(path): return []
+    
+    try:
+        df = pd.read_excel(path, header=None)
+        data = df.iloc[3:].copy()
+        cols = {0: 'name', 2: 'role', 11: 'total_apps', 20: 'total_goals', 29: 'total_assists'}
+        
+        clean = data.rename(columns=cols)
+        clean = clean.dropna(subset=['name'])
+
+        clean['name'] = clean['name'].astype(str)
+        clean['role'] = clean['role'].astype(str).str.strip().fillna('Player')
+        
+        clean = clean[pd.to_numeric(clean['total_apps'], errors='coerce').notna()]
+        
+        clean['name'] = clean['name'].str.title()
+        
+        for c in ['total_apps', 'total_goals', 'total_assists']:
+            clean[c] = pd.to_numeric(clean[c], errors='coerce').fillna(0).astype(int)
+            
+        return clean[['name', 'role', 'total_apps', 'total_goals', 'total_assists']].to_dict(orient='records')
+    except Exception as e:
+        print(f"FATAL ERROR in Hall of Fame (process_all_time): {e}")
+        return []
+    
 # --- CORE MATCH LOGIC FIX ---
 def extract_matches(df, season_key):
     matches = []
@@ -116,7 +172,7 @@ def extract_matches(df, season_key):
         
         elif current_match:
             # --- PENALTY SHOOTOUT DETECTION ---
-            if pd.notna(row[4]) and 'dcr' in str(row[4]).lower():
+            if pd.notna(row[4]) and 'd.c.r' in str(row[4]).lower():
                 # Shootout logic remains the same (Correctly checks next row)
                 current_match['shootout_score'] = str(row[4]).strip()
                 shootout_parts = str(row[4]).split('+')[-1].strip().split('-')
