@@ -244,11 +244,16 @@ def extract_matches(df, season_key):
     if current_match: matches.append(current_match)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
 
-# --- NEW: STRICT YOUTUBE MATCHER ---
+# --- NEW: STRICT YOUTUBE MATCHER (No Fuzzy) ---
 def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
-    """Fetches videos and links them using strict Date + Score filtering."""
+    """Fetches videos and links them using strict Date + Score + Name filtering."""
     
     # 1. Get Uploads Playlist ID
+    # (This part assumes you have the CHANNEL_ID_VAR and requests imported)
+    if not channel_id:
+        print("Error: YOUTUBE_CHANNEL_ID not set.")
+        return all_matches
+
     url = f"https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id={channel_id}&key={api_key}"
     response = requests.get(url)
     if response.status_code != 200:
@@ -264,7 +269,6 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
     # 2. Fetch Videos (Only from 23/24 season onwards)
     all_videos = []
     next_page_token = None
-    # Use timezone-aware UTC date
     start_date = datetime.datetime(2023, 8, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
     while True:
@@ -279,7 +283,6 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
         playlist_data = response.json()
         
         for item in playlist_data.get('items', []):
-            # Parse ISO format date
             pub_str = item['snippet']['publishedAt'].replace('Z', '+00:00')
             published_at = datetime.datetime.fromisoformat(pub_str)
             
@@ -290,7 +293,7 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
                     'publishedAt': published_at
                 })
             elif published_at < start_date:
-                next_page_token = None # Stop fetching older videos
+                next_page_token = None 
                 break
         
         next_page_token = playlist_data.get('nextPageToken')
@@ -301,45 +304,35 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
 
     # 3. Link Videos to Matches (Strict Filtering)
     for match in all_matches:
-        best_fuzzy_score = 0
-        best_video_id = None
         
         try:
             match_date = datetime.datetime.strptime(match['date'], '%Y-%m-%d').date()
         except:
-            continue # Skip matches with bad dates
+            continue 
 
         for video in all_videos:
             video_date = video['publishedAt'].date()
             
             # FILTER 1: Date Window (Same day or Next day only)
-            # Calculate difference in days
             delta = (video_date - match_date).days
             if delta < 0 or delta > 1:
-                continue # Reject if published before match or >1 day after
+                continue 
 
             # FILTER 2: Score Check
-            # Check if "5-3" is in title (handling "5 - 3" spacing differences)
             clean_score = match['score'].replace(' ', '')
             clean_title = video['title'].replace(' ', '')
             
             if clean_score not in clean_title:
-                continue # Reject if score is missing/wrong
+                continue 
             
-            # FILTER 3: Fuzzy Name Match (Tie-breaker)
-            # If we get here, date and score are correct.
-            # We just check the opponent name to be safe.
+            # FILTER 3: Strict Opponent Name Check
+            # The opponent name from Excel MUST be inside the video title
             opponent_clean = match['opponent'].lower()
             video_title_clean = video['title'].lower()
             
-            score = fuzz.partial_ratio(opponent_clean, video_title_clean)
-            
-            # We accept the video with the highest name match
-            if score > best_fuzzy_score:
-                best_fuzzy_score = score
-                best_video_id = video['videoId']
-        
-        match['videoId'] = best_video_id
+            if opponent_clean in video_title_clean:
+                match['videoId'] = video['videoId']
+                break # Found the exact match, stop checking other videos
         
     return all_matches
 
