@@ -327,7 +327,7 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
         for video in all_videos:
             score = fuzzy_match(search_query, video['title'])
             
-            if score > best_score and score > 75: # Requires a decent confidence score
+            if score > best_score and score > 65: # Requires a decent confidence score
                 best_score = score
                 best_video_id = video['videoId']
         

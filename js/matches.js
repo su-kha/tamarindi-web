@@ -97,14 +97,18 @@ function renderMatches(matches) {
                 ${redCardsHtml}
             </div>
             
-            <div 
-                class="yt-button" 
-                onclick="loadVideo(this, '${match.opponent}', '${match.date}')"
-                data-opponent="${match.opponent}"
-                data-date="${match.date}"
-                data-video-id="${match.videoId}">>
-                ▶ Search Highlights
-            </div>
+            ${match.videoId 
+                ? `
+                <div 
+                    class="yt-button" 
+                    onclick="loadVideo(this, '${match.opponent}', '${match.date}')"
+                    data-opponent="${match.opponent}"
+                    data-date="${match.date}"
+                    data-video-id="${match.videoId}">
+                    ▶ Watch Highlights
+                </div>`
+                : `<div class="yt-button" style="background:#444; cursor:default; border-color:#222;">Video Not Available</div>`
+            }
             <div class="video-container"></div>
         `;
         container.appendChild(card);
