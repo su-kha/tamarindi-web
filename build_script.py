@@ -330,12 +330,12 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
             # The opponent name from Excel MUST be inside the video title
             opponent_clean = match['opponent'].lower().replace(' ', '')
             video_title_clean = video['title'].lower().replace(' ', '')
-            if i == 1:
-                print(opponent_clean, video_title_clean)
             
             if opponent_clean in video_title_clean:
                 match['videoId'] = video['videoId']
                 break # Found the exact match, stop checking other videos
+            else:
+                print(opponent_clean, video_title_clean)
         
     return all_matches
 
