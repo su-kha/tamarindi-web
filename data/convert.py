@@ -244,54 +244,11 @@ def extract_matches(df, season_key):
     if current_match: matches.append(current_match)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
 
-# --- NEW DATE PROXIMITY HELPER ---
-def calculate_date_proximity_score(match_date_str, published_at):
-    """Calculates a score (0-100) based on date difference."""
-    try:
-        # Convert match date string to datetime object
-        match_date = datetime.datetime.strptime(match_date_str, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
-    except ValueError:
-        return 0
-    
-    # Calculate difference in days
-    time_difference = abs(published_at - match_date)
-    days = time_difference.days
-    
-    # Scoring: 100 if published on match day, linearly decreases to 0 over 14 days
-    if days == 0:
-        return 100
-    elif days <= 2:
-        # Score decreases by ~7 points per day
-        return 100 - (days * 10) 
-    else:
-        return 0
-
-def fuzzy_match(match_details, video_title):
-    """Calculates a match score based on opponent name and score presence."""
-    
-    # Extract details passed from the main function
-    search_query = match_details['search_query']
-    match_score = match_details['score']
-    
-    # 1. Standardize titles (remove years, etc., to focus on team names)
-    standard_search = re.sub(r'20\d{2}', '', search_query).lower()
-    standard_video = re.sub(r'20\d{2}', '', video_title).lower()
-    
-    # Check for core opponent match (using partial ratio is good)
-    core_ratio = fuzz.partial_ratio(standard_search, standard_video)
-    
-    # 2. Score Bonus: Check if the final score (e.g., "5-3") is in the title
-    score_bonus = 0
-    if match_score != '?-?' and match_score in video_title:
-        score_bonus = 30 
-        
-    return core_ratio + score_bonus
-
-# --- NEW: YOUTUBE FETCHER ---
+# --- NEW: STRICT YOUTUBE MATCHER ---
 def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
-    """Fetches all videos from the channel's upload playlist and links them to matches."""
+    """Fetches videos and links them using strict Date + Score filtering."""
     
-    # 1. Get Uploads Playlist ID (Channel ID is used to find the uploads playlist)
+    # 1. Get Uploads Playlist ID
     url = f"https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id={channel_id}&key={api_key}"
     response = requests.get(url)
     if response.status_code != 200:
@@ -300,15 +257,15 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
     
     channel_data = response.json()
     if not channel_data.get('items'):
-        print("Error: Channel not found or API issue.")
         return all_matches
 
     uploads_playlist_id = channel_data['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     
-    # 2. Fetch all Videos from Playlist (Low cost: 1 unit per 50 items)
+    # 2. Fetch Videos (Only from 23/24 season onwards)
     all_videos = []
     next_page_token = None
-    start_date = datetime.datetime(2023, 8, 1, 0, 0, 0, tzinfo=datetime.timezone.utc) # Start of 23/24 season
+    # Use timezone-aware UTC date
+    start_date = datetime.datetime(2023, 8, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
 
     while True:
         playlist_url = f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId={uploads_playlist_id}&key={api_key}"
@@ -317,15 +274,15 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
             
         response = requests.get(playlist_url)
         if response.status_code != 200:
-            print(f"Error fetching playlist items: {response.text}")
             break
             
         playlist_data = response.json()
         
         for item in playlist_data.get('items', []):
-            published_at = datetime.datetime.fromisoformat(item['snippet']['publishedAt'].replace('Z', '+00:00'))
+            # Parse ISO format date
+            pub_str = item['snippet']['publishedAt'].replace('Z', '+00:00')
+            published_at = datetime.datetime.fromisoformat(pub_str)
             
-            # Filter by publish date (Start of 2023/2024 season)
             if published_at >= start_date:
                 all_videos.append({
                     'title': item['snippet']['title'],
@@ -333,47 +290,55 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
                     'publishedAt': published_at
                 })
             elif published_at < start_date:
-                # Since videos are listed newest first, we can stop fetching old videos
-                next_page_token = None
+                next_page_token = None # Stop fetching older videos
                 break
         
         next_page_token = playlist_data.get('nextPageToken')
         if not next_page_token:
             break
 
-    # 3. Match Videos to Excel Data
-    print(f"Found {len(all_videos)} videos since 2023-08-01. Starting fuzzy match...")
-    
+    print(f"Found {len(all_videos)} potential videos. Linking to matches...")
+
+    # 3. Link Videos to Matches (Strict Filtering)
     for match in all_matches:
-        # 1. Construct Detailed Search Query for Fuzzy Match
-        search_details = {
-            'search_query': f"{match['opponent']} {match['score']}", # Includes score for basic search string
-            'score': match['score']
-        }
-        
-        best_total_confidence = -1
+        best_fuzzy_score = 0
         best_video_id = None
         
+        try:
+            match_date = datetime.datetime.strptime(match['date'], '%Y-%m-%d').date()
+        except:
+            continue # Skip matches with bad dates
+
         for video in all_videos:
+            video_date = video['publishedAt'].date()
             
-            # A. Fuzzy Ratio (Weight 70%) - Opponent + Score Match
-            fuzzy_score = fuzzy_match(search_details, video['title'])
+            # FILTER 1: Date Window (Same day or Next day only)
+            # Calculate difference in days
+            delta = (video_date - match_date).days
+            if delta < 0 or delta > 1:
+                continue # Reject if published before match or >1 day after
+
+            # FILTER 2: Score Check
+            # Check if "5-3" is in title (handling "5 - 3" spacing differences)
+            clean_score = match['score'].replace(' ', '')
+            clean_title = video['title'].replace(' ', '')
             
-            # B. Date Proximity (Weight 30%)
-            date_score = calculate_date_proximity_score(match['date'], video['publishedAt'])
+            if clean_score not in clean_title:
+                continue # Reject if score is missing/wrong
             
-            # C. Combine Scores (Weighted average)
-            total_confidence = (fuzzy_score * 0.8) + (date_score * 0.2)
+            # FILTER 3: Fuzzy Name Match (Tie-breaker)
+            # If we get here, date and score are correct.
+            # We just check the opponent name to be safe.
+            opponent_clean = match['opponent'].lower()
+            video_title_clean = video['title'].lower()
             
-            # --- SELECTION ---
+            score = fuzz.partial_ratio(opponent_clean, video_title_clean)
             
-            # Only consider videos with a strong opponent match AND some date relevance
-            # If the fuzzy score is below 70 (e.g., opponent name is missing), reject it.
-            if total_confidence > best_total_confidence and fuzzy_score >= 70: 
-                best_total_confidence = total_confidence
+            # We accept the video with the highest name match
+            if score > best_fuzzy_score:
+                best_fuzzy_score = score
                 best_video_id = video['videoId']
         
-        # Inject the best video ID back into the match data
         match['videoId'] = best_video_id
         
     return all_matches
