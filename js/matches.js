@@ -123,9 +123,10 @@ function loadVideo(btn, opponent, date) {
     }
 
     if (videoId && videoId !== 'None') {
+        // Embed the video
         container.innerHTML = `
             <iframe 
-                src="https://www.youtube.com/embed/${videoId}" 
+                src="https://www.youtube-nocookie.com/embed/${videoId}" 
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>`;
