@@ -172,7 +172,7 @@ def extract_matches(df, season_key):
         
         elif current_match:
             # --- PENALTY SHOOTOUT DETECTION ---
-            if pd.notna(row[4]) and 'd.c.r' in str(row[4]).lower():
+            if pd.notna(row[4]) and 'dcr' in str(row[4]).lower():
                 # Shootout logic remains the same (Correctly checks next row)
                 current_match['shootout_score'] = str(row[4]).strip()
                 shootout_parts = str(row[4]).split('+')[-1].strip().split('-')
@@ -213,7 +213,7 @@ def extract_matches(df, season_key):
                     
                     # 1. Check for SAVED Penalty [R parato] (NEW LOGIC)
                     if 'R PARATO' in name_only:
-                        name_to_add = name_only.replace('R PARATO', '').strip().title()
+                        name_to_add = name_only.replace('[R PARATO]', '').strip().title()
                         if name_to_add:
                              current_match['saved_penalty_goalkeepers'].append(name_to_add)
 
