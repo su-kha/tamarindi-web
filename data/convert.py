@@ -102,7 +102,6 @@ def extract_matches(df, season_key):
             # --- HOME/AWAY LOGIC ---
             tamarindi_is_home = False
             opponent = 'Unknown'
-            score_col = 4 # Default score column
             
             if season_key == 'season_19_20':
                 # 19/20 Format: Date (0) | Team A (2) | Score A (4) | - (5) | Score B (6) | Team B (7)
@@ -111,12 +110,10 @@ def extract_matches(df, season_key):
                 if str(row[2]).strip().startswith('Tamarindi F.C.') or str(row[2]).strip().startswith('Tamarindi FC'):
                     tamarindi_is_home = True
                     opponent = str(row[7]).strip() if not pd.isna(row[7]) else 'Unknown'
-                    score_col = 4 # TFC score is in Col 4
                 # Check Col 7 for Tamarindi (Away)
                 elif str(row[7]).strip().startswith('Tamarindi F.C.') or str(row[7]).strip().startswith('Tamarindi FC'):
                     tamarindi_is_home = False
                     opponent = str(row[2]).strip() if not pd.isna(row[2]) else 'Unknown'
-                    score_col = 6 # TFC score is in Col 6 (Away)
                 
                 # Score is always Col 4 - Col 6
                 score = f"{str(row[4]).strip()}-{str(row[6]).strip()}" if not pd.isna(row[4]) and not pd.isna(row[6]) else '?-?'
