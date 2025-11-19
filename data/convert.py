@@ -195,8 +195,8 @@ def extract_matches(df, season_key):
             # --- Normal Card/Goal Parsing ---
             # 19/20 format places all player events (scorers/cards) in Col 4 (Home) or Col 6 (Away)
             if season_key == 'season_19_20':
-                potential_scorer_home = str(row[4]).strip() if not pd.isna(row[2]) else ''
-                potential_scorer_away = str(row[6]).strip() if not pd.isna(row[5]) else ''
+                potential_scorer_home = str(row[4]).strip() if not pd.isna(row[4]) else ''
+                potential_scorer_away = str(row[6]).strip() if not pd.isna(row[6]) else ''
                 scorer_col_value = potential_scorer_home if current_match['home_status'] == 'Home' else potential_scorer_away
             else:
                 # Other seasons use Col 2 (Home) or Col 5 (Away)

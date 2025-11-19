@@ -127,7 +127,7 @@ function loadVideo(btn, opponent, date) {
         container.innerHTML = `
             <iframe 
                 src="https://www.youtube-nocookie.com/embed/${videoId}" 
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                allow="autoplay; encrypted-media" 
                 allowfullscreen>
             </iframe>`;
         container.style.display = 'block';
