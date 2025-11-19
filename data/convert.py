@@ -260,9 +260,9 @@ def calculate_date_proximity_score(match_date_str, published_at):
     # Scoring: 100 if published on match day, linearly decreases to 0 over 14 days
     if days == 0:
         return 100
-    elif days <= 14:
+    elif days <= 2:
         # Score decreases by ~7 points per day
-        return 100 - (days * 7) 
+        return 100 - (days * 10) 
     else:
         return 0
 
@@ -283,7 +283,7 @@ def fuzzy_match(match_details, video_title):
     # 2. Score Bonus: Check if the final score (e.g., "5-3") is in the title
     score_bonus = 0
     if match_score != '?-?' and match_score in video_title:
-        score_bonus = 10 
+        score_bonus = 30 
         
     return core_ratio + score_bonus
 
@@ -363,7 +363,7 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
             date_score = calculate_date_proximity_score(match['date'], video['publishedAt'])
             
             # C. Combine Scores (Weighted average)
-            total_confidence = (fuzzy_score * 0.7) + (date_score * 0.3)
+            total_confidence = (fuzzy_score * 0.8) + (date_score * 0.2)
             
             # --- SELECTION ---
             
