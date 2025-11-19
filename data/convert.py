@@ -244,22 +244,48 @@ def extract_matches(df, season_key):
     if current_match: matches.append(current_match)
     return [m for m in matches if m['opponent'] not in ('Unknown', '') and m['score'] != '?']
 
-# --- NEW: FUZZY MATCHING HELPER ---
-def fuzzy_match(match_title, video_title):
-    """Calculates a match score based on relevant keywords."""
-    
-    # 1. Standardize titles (remove years, etc., to focus on team names)
-    standard_match = re.sub(r'20\d{2}', '', match_title).lower()
-    standard_video = re.sub(r'20\d{2}', '', video_title).lower()
-    
-    # Simple check for required keywords
-    if 'tamarindi' not in standard_video:
+# --- NEW DATE PROXIMITY HELPER ---
+def calculate_date_proximity_score(match_date_str, published_at):
+    """Calculates a score (0-100) based on date difference."""
+    try:
+        # Convert match date string to datetime object
+        match_date = datetime.datetime.strptime(match_date_str, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
+    except ValueError:
         return 0
     
-    # Use partial ratio for better results when titles include extra text (like 'Highlights')
-    ratio = fuzz.partial_ratio(standard_match, standard_video)
+    # Calculate difference in days
+    time_difference = abs(published_at - match_date)
+    days = time_difference.days
     
-    return ratio
+    # Scoring: 100 if published on match day, linearly decreases to 0 over 14 days
+    if days == 0:
+        return 100
+    elif days <= 14:
+        # Score decreases by ~7 points per day
+        return 100 - (days * 7) 
+    else:
+        return 0
+
+def fuzzy_match(match_details, video_title):
+    """Calculates a match score based on opponent name and score presence."""
+    
+    # Extract details passed from the main function
+    search_query = match_details['search_query']
+    match_score = match_details['score']
+    
+    # 1. Standardize titles (remove years, etc., to focus on team names)
+    standard_search = re.sub(r'20\d{2}', '', search_query).lower()
+    standard_video = re.sub(r'20\d{2}', '', video_title).lower()
+    
+    # Check for core opponent match (using partial ratio is good)
+    core_ratio = fuzz.partial_ratio(standard_search, standard_video)
+    
+    # 2. Score Bonus: Check if the final score (e.g., "5-3") is in the title
+    score_bonus = 0
+    if match_score != '?-?' and match_score in video_title:
+        score_bonus = 10 
+        
+    return core_ratio + score_bonus
 
 # --- NEW: YOUTUBE FETCHER ---
 def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
@@ -319,21 +345,36 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
     print(f"Found {len(all_videos)} videos since 2023-08-01. Starting fuzzy match...")
     
     for match in all_matches:
-        # Construct the ideal search query from Excel data
-        search_query = f"{match['opponent']} {match['date']}"
-        best_score = 0
+        # 1. Construct Detailed Search Query for Fuzzy Match
+        search_details = {
+            'search_query': f"{match['opponent']} {match['score']}", # Includes score for basic search string
+            'score': match['score']
+        }
+        
+        best_total_confidence = -1
         best_video_id = None
         
         for video in all_videos:
-            score = fuzzy_match(search_query, video['title'])
             
-            if score > best_score and score > 65: # Requires a decent confidence score
-                best_score = score
+            # A. Fuzzy Ratio (Weight 70%) - Opponent + Score Match
+            fuzzy_score = fuzzy_match(search_details, video['title'])
+            
+            # B. Date Proximity (Weight 30%)
+            date_score = calculate_date_proximity_score(match['date'], video['publishedAt'])
+            
+            # C. Combine Scores (Weighted average)
+            total_confidence = (fuzzy_score * 0.7) + (date_score * 0.3)
+            
+            # --- SELECTION ---
+            
+            # Only consider videos with a strong opponent match AND some date relevance
+            # If the fuzzy score is below 70 (e.g., opponent name is missing), reject it.
+            if total_confidence > best_total_confidence and fuzzy_score >= 70: 
+                best_total_confidence = total_confidence
                 best_video_id = video['videoId']
         
         # Inject the best video ID back into the match data
         match['videoId'] = best_video_id
-        match['match_score'] = best_score # Optional debug field
         
     return all_matches
 
