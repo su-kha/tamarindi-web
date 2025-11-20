@@ -325,7 +325,7 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
 
             tamarindi_names = ['tamarindi', 'palermo', 'tamardini']
             
-            if any(tamarindi_names) in video_title_clean:
+            if any(name in video_title_clean for name in tamarindi_names):
                 match['videoId'] = video['videoId']
                 break # Found the exact match, stop checking other videos
         
