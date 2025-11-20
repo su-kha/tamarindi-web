@@ -316,9 +316,10 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
             if match['opponent'] == 'Atletico Madrid':
                 video_date = video['publishedAt'].date()
                 
-                print(delta, video_date, match_date)
                 # FILTER 1: Date Window (Previous, Same day or Next day only)
                 delta = abs(video_date - match_date).days
+                
+                print(delta, video_date, match_date)
                 if delta > 1:
                     continue 
                 
