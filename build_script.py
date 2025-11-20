@@ -313,33 +313,29 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
 
         for video in all_videos:
 
-            if 'Venezia' in video['title']:
-                print(video['title'])
-                video_date = video['publishedAt'].date()
-                
-                # FILTER 1: Date Window (Same day or Next day only)
-                delta = abs(video_date - match_date).days
-                print(delta, video_date, match_date)
-                if delta > 1:
-                    continue 
-                
-                # FILTER 2: Score Check
-                clean_score = match['score'].replace(' ', '')
-                clean_title = video['title'].replace(' ', '')
-                
-                print(clean_score, clean_title)
-                if clean_score not in clean_title:
-                    continue 
-                
-                # FILTER 3: Strict Opponent Name Check
-                # The opponent name from Excel MUST be inside the video title
-                opponent_clean = match['opponent'].lower().replace(' ', '')
-                video_title_clean = video['title'].lower().replace(' ', '')
-                
-                print(opponent_clean, video_title_clean)
-                if opponent_clean in video_title_clean:
-                    match['videoId'] = video['videoId']
-                    break # Found the exact match, stop checking other videos
+            video_date = video['publishedAt'].date()
+            
+            # FILTER 1: Date Window (Previous, Same day or Next day only)
+            delta = abs(video_date - match_date).days
+            if delta > 1:
+                continue 
+            
+            # FILTER 2: Score Check
+            clean_score = match['score'].replace(' ', '')
+            clean_title = video['title'].replace(' ', '')
+            
+            if clean_score not in clean_title:
+                continue 
+            
+            # FILTER 3: Strict Opponent Name Check
+            # The opponent name from Excel MUST be inside the video title
+            
+            opponent_clean = match['opponent'].lower().replace(' ', '')
+            video_title_clean = video['title'].lower().replace(' ', '')
+            
+            if opponent_clean and ('tamarindi' or 'palermo') in video_title_clean:
+                match['videoId'] = video['videoId']
+                break # Found the exact match, stop checking other videos
         
     return all_matches
 
