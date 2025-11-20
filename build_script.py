@@ -318,9 +318,9 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
                 video_date = video['publishedAt'].date()
                 
                 # FILTER 1: Date Window (Same day or Next day only)
-                delta = (video_date - match_date).days
+                delta = abs(video_date - match_date).days
                 print(delta, video_date, match_date)
-                if delta < 0 or delta > 1:
+                if delta > 1:
                     continue 
                 
                 # FILTER 2: Score Check
