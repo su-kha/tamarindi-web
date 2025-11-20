@@ -313,22 +313,19 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
 
         for video in all_videos:
 
-            if match['opponent'] == 'Atletico Madrid':
-                video_date = video['publishedAt'].date()
-                
-                # FILTER 1: Date Window (Previous, Same day or Next day only)
-                delta = abs(video_date - match_date).days
-                
-                print(delta, video_date, match_date)
-                if delta > 1:
-                    continue 
-                
-                video_title_clean = video['title'].lower().replace(' ', '')
-                
-                print(video_title_clean)
-                if ('tamarindi' or 'palermo') in video_title_clean:
-                    match['videoId'] = video['videoId']
-                    break # Found the exact match, stop checking other videos
+            video_date = video['publishedAt'].date()
+            
+            # FILTER 1: Date Window (Previous, Same day or Next day only)
+            delta = abs(video_date - match_date).days
+            
+            if delta > 1:
+                continue 
+            
+            video_title_clean = video['title'].lower().replace(' ', '')
+            
+            if 'tamarindi' in video_title_clean or 'palermo' in video_title_clean:
+                match['videoId'] = video['videoId']
+                break # Found the exact match, stop checking other videos
         
     return all_matches
 
