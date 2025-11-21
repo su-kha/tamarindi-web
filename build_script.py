@@ -331,6 +331,31 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
         
     return all_matches
 
+# --- GALLERY SCANNER ---
+def scan_gallery_images():
+    """Scans the images/gallery folder and returns a list of filenames."""
+    
+    # Path to the gallery folder (relative to the repo root)
+    # We go up one level from 'data/' to root, then into 'images/gallery'
+    gallery_dir = os.path.join(os.path.dirname(BASE_DIR), 'images', 'gallery')
+    
+    if not os.path.exists(gallery_dir):
+        print(f"Gallery folder not found at: {gallery_dir}")
+        return []
+    
+    images = []
+    valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+    
+    for filename in os.listdir(gallery_dir):
+        if filename.lower().endswith(valid_extensions):
+            # We just need the filename, the frontend knows the path
+            images.append(filename)
+            
+    # Sort alphabetically or by modification time if you prefer
+    images.sort()
+    print(f"Found {len(images)} images in gallery.")
+    return images
+
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     print("Starting conversion...")
@@ -365,6 +390,8 @@ if __name__ == "__main__":
     # Finalize Matches (Sorts and saves all_matches, now with video IDs)
     all_matches.sort(key=lambda x: x['date'], reverse=True)
     final_data['matches'] = all_matches
+
+    final_data['gallery'] = scan_gallery_images()
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)

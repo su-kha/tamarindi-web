@@ -341,3 +341,67 @@ table.stats-table th:hover {
     border-top: 1px dashed #ccc;
     margin: 15px 0;
 }
+
+/* --- GALLERY GRID --- */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.gallery-item {
+    border: 2px solid black;
+    background: white;
+    padding: 5px;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.gallery-item:hover {
+    transform: scale(1.03);
+    border-color: var(--team-pink);
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 200px; /* Fixed height for uniformity */
+    object-fit: cover; /* Crops image nicely */
+    display: block;
+}
+
+/* --- LIGHTBOX (Popup) --- */
+.lightbox {
+    display: none; /* Hidden */
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9); /* Dark overlay */
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    border: 4px solid white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.close-btn:hover {
+    color: var(--team-pink);
+}

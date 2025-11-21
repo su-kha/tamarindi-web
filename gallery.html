@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamarindi F.C. - Gallery</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <a href="index.html" style="text-decoration:none; color:black;">
+                <h1>TAMARINDI F.C.</h1>
+            </a>
+            <p class="tagline">Moments of Glory (and Shame)</p>
+        </header>
+
+        <div class="content-wrapper" style="display:block;">
+            <a href="index.html" style="display:inline-block; margin-bottom:20px; color:black; font-weight:bold; text-decoration:none;">
+                &larr; Back to Home
+            </a>
+
+            <div id="gallery-grid" class="gallery-grid">
+                <p>Loading photos...</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Tamarindi F.C.</p>
+        </footer>
+    </div>
+
+    <div id="lightbox" class="lightbox">
+        <span class="close-btn" onclick="closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
+
+    <script src="js/gallery.js"></script>
+    <script src="js/back_to_top.js"></script>
+</body>
+</html>
