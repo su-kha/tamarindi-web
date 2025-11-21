@@ -3,25 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tamarindi F.C. - Work in Progress</title>
+    <title>Tamarindi F.C. - Trophy Room</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="main-container" style="text-align:center; min-height: 80vh; display:flex; flex-direction:column; justify-content:center;">
-        
+
+    <div class="main-container">
+
         <header>
-            <h1>UNDER CONSTRUCTION</h1>
+            <a href="index.html" style="text-decoration:none; color:black;">
+                <h1>TAMARINDI F.C.</h1>
+            </a>
+            <p class="tagline">The Trophy Cabinet</p>
         </header>
 
         <div class="content-wrapper" style="display:block;">
-            <p>The gaffer is still working on the tactics board.</p>
-            <p>Check back later for stats, fixtures, and highlights.</p>
             
-            <div style="margin-top: 30px;">
-                <a href="index.html" style="background:var(--team-pink); color:white; padding:10px 20px; text-decoration:none; border:2px solid black; font-weight:bold;">
-                    &larr; Back to Home
-                </a>
+            <a href="index.html" style="display:inline-block; margin-bottom:20px; color:black; font-weight:bold; text-decoration:none;">
+                &larr; Back to Home
+            </a>
+
+            <div class="trophy-grid">
+
+                <div class="trophy-card gold-tier">
+                    <div class="trophy-icon">🏆</div> <div class="trophy-count">1x Champion</div>
+                    <h3>Europa League Campionatone</h3>
+                    <hr class="divider">
+                    <p class="season-list">
+                        2023/2024
+                    </p>
+                </div>
+
+                <div class="trophy-card silver-tier">
+                    <div class="trophy-icon">🥈</div>
+                    <div class="trophy-count">5x Runner-up</div>
+                    <h3>Trofeo Bruna Caravà</h3>
+                    <hr class="divider">
+                    <p class="season-list">
+                        2019/2020, 2020/2021, 2021/2022, 2022/2023, 2023/2024
+                    </p>
+                </div>
+
+                <div class="trophy-card silver-tier">
+                    <div class="trophy-icon">🥈</div>
+                    <div class="trophy-count">1x Runner-up</div>
+                    <h3>Europa League Angelo Sautariello</h3>
+                    <hr class="divider">
+                    <p class="season-list">
+                        2020/2021
+                    </p>
+                </div>
+
             </div>
+
         </div>
 
         <footer>
@@ -29,5 +63,7 @@
         </footer>
 
     </div>
+
+    <script src="js/back_to_top.js"></script> 
 </body>
 </html>

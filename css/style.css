@@ -256,3 +256,88 @@ table.stats-table th:hover {
 .match-card.loss-bg {
     border-left: 8px solid #cc0000; /* Red Left Border */
 }
+
+/* --- PALMARES / TROPHY ROOM --- */
+
+.trophy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+.trophy-card {
+    background-color: white;
+    border: 3px solid black;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+    position: relative;
+}
+
+.trophy-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Big Emoji Icon */
+.trophy-icon {
+    font-size: 4rem; 
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Text Styles */
+.trophy-count {
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.trophy-card h3 {
+    margin: 10px 0;
+    font-size: 1.4rem;
+}
+
+.season-list {
+    font-family: 'Courier New', Courier, monospace;
+    color: #555;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+/* --- COLOR THEMES --- */
+
+/* Gold Styling */
+.gold-tier {
+    border-color: #daa520; /* Goldenrod */
+    box-shadow: 8px 8px 0px #daa520;
+}
+.gold-tier .trophy-count {
+    color: #daa520;
+    background: #fff8e1; /* Light yellow bg */
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #daa520;
+}
+
+/* Silver Styling */
+.silver-tier {
+    border-color: #7f8c8d; /* Silver/Grey */
+    box-shadow: 8px 8px 0px #7f8c8d;
+}
+.silver-tier .trophy-count {
+    color: #7f8c8d;
+    background: #f0f0f0; /* Light grey bg */
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #7f8c8d;
+}
+
+/* Divider line inside card */
+.divider {
+    border: 0;
+    border-top: 1px dashed #ccc;
+    margin: 15px 0;
+}
