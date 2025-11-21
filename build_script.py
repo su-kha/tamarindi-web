@@ -331,29 +331,48 @@ def fetch_youtube_videos_and_link(all_matches, api_key, channel_id):
         
     return all_matches
 
-# --- GALLERY SCANNER ---
+# --- GALLERY SCANNER (With Debugging) ---
 def scan_gallery_images():
     """Scans the images/gallery folder and returns a list of filenames."""
     
-    # Path to the gallery folder (relative to the repo root)
-    # We go up one level from 'data/' to root, then into 'images/gallery'
-    gallery_dir = os.path.join(os.path.dirname(BASE_DIR), 'images', 'gallery')
+    # Go up one level from 'data/' to the root folder
+    root_dir = os.path.dirname(BASE_DIR)
+    gallery_dir = os.path.join(root_dir, 'images', 'gallery')
     
+    # 1. Check if folder exists
     if not os.path.exists(gallery_dir):
-        print(f"Gallery folder not found at: {gallery_dir}")
+        print(f"WARNING: Gallery folder NOT found at: {gallery_dir}")
+        
+        # DEBUG: Print what the server ACTUALLY sees in the folders
+        print("--- DEBUG INFO ---")
+        try:
+            print(f"Contents of Root ({root_dir}):")
+            print(os.listdir(root_dir))
+            
+            images_parent = os.path.join(root_dir, 'images')
+            if os.path.exists(images_parent):
+                print(f"Contents of 'images' folder:")
+                print(os.listdir(images_parent))
+            else:
+                print("'images' folder does not exist.")
+        except Exception as e:
+            print(f"Debug failed: {e}")
+        print("------------------")
+        
         return []
     
+    # 2. Scan for files
     images = []
     valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
     
+    print(f"Scanning gallery at: {gallery_dir}")
+    
     for filename in os.listdir(gallery_dir):
         if filename.lower().endswith(valid_extensions):
-            # We just need the filename, the frontend knows the path
             images.append(filename)
             
-    # Sort alphabetically or by modification time if you prefer
     images.sort()
-    print(f"Found {len(images)} images in gallery.")
+    print(f"Found {len(images)} images.")
     return images
 
 # --- MAIN EXECUTION ---
