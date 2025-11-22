@@ -405,3 +405,35 @@ table.stats-table th:hover {
 .close-btn:hover {
     color: var(--team-pink);
 }
+
+/* --- LIGHTBOX NAVIGATION --- */
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -50px;
+    color: white;
+    font-weight: bold;
+    font-size: 40px;
+    transition: 0.3s ease;
+    user-select: none;
+    z-index: 10001; /* Above image */
+}
+
+/* Position them on sides */
+.prev { left: 0; border-radius: 0 3px 3px 0; }
+.next { right: 0; border-radius: 3px 0 0 3px; }
+
+/* Hover effect */
+.prev:hover, .next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--team-pink);
+}
+
+/* Fix for mobile to prevent overlapping */
+@media (max-width: 600px) {
+    .prev, .next { font-size: 30px; padding: 10px; }
+    .lightbox-content { max-width: 95%; }
+}
