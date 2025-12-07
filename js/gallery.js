@@ -44,8 +44,12 @@ function openLightbox(index) {
     document.getElementById('lightbox').style.display = "flex";
 }
 
-function closeLightbox() {
-    document.getElementById('lightbox').style.display = "none";
+function closeLightbox(event) {
+    // If 'event' is missing (called manually) OR the user clicked the dark background (id="lightbox")
+    // OR the user clicked the 'close-btn' (X)
+    if (!event || event.target.id === 'lightbox' || event.target.className === 'close-btn') {
+        document.getElementById('lightbox').style.display = "none";
+    }
 }
 
 // Called by the arrows (n is -1 or +1)

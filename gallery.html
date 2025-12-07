@@ -31,12 +31,16 @@
         </footer>
     </div>
 
-    <div id="lightbox" class="lightbox">
-        <span class="close-btn" onclick="closeLightbox()">&times;</span>
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <span class="close-btn">&times;</span>
         
-        <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
-        <img class="lightbox-content" id="lightbox-img">
-        <a class="next" onclick="changeSlide(1)">&#10095;</a>
+        <div class="lightbox-wrapper">
+            <a class="prev" onclick="changeSlide(-1); event.stopPropagation()">&#10094;</a>
+            
+            <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
+            
+            <a class="next" onclick="changeSlide(1); event.stopPropagation()">&#10095;</a>
+        </div>
     </div>
 
     <script src="js/gallery.js"></script>

@@ -462,9 +462,19 @@ iframe {
     align-items: center;
 }
 
+/* Wrapper to keep arrows stuck to the image */
+.lightbox-wrapper {
+    position: relative;
+    display: inline-block; /* Shrinks to fit the image */
+    line-height: 0; /* Removes tiny space under image */
+}
+
+/* Update Image size to look at Viewport (screen) instead of Parent */
 .lightbox-content {
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 90vw; /* 90% of Screen Width */
+    max-height: 85vh; /* 85% of Screen Height (leaves room for caption/padding) */
+    width: auto;
+    height: auto;
     border: 4px solid white;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
