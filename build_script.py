@@ -2,10 +2,9 @@ import pandas as pd
 import json
 import os
 import requests
-from thefuzz import fuzz
 import datetime
 import re
-import numpy as np
+from PIL import Image
 
 # --- CONFIGURATION & SETTINGS ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -338,10 +337,15 @@ def scan_gallery_images():
     # Path to the gallery folder (relative to the repo root)
     # We go up one level from 'data/' to root, then into 'images/gallery'
     gallery_dir = os.path.join(BASE_DIR, 'images', 'gallery')
+
+    thumb_dir = os.path.join(gallery_dir, "thumbnails")
     
     if not os.path.exists(gallery_dir):
         print(f"Gallery folder not found at: {gallery_dir}")
         return []
+    
+    if not os.path.exists(thumb_dir):
+        os.makedirs(thumb_dir)
     
     images = []
     valid_extensions = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
@@ -350,6 +354,26 @@ def scan_gallery_images():
         if filename.lower().endswith(valid_extensions):
             # We just need the filename, the frontend knows the path
             images.append(filename)
+
+            # --- THUMBNAIL GENERATION ---
+            original_path = os.path.join(gallery_dir, filename)
+            thumb_path = os.path.join(thumb_dir, filename)
+            
+            # Create thumbnail if it doesn't exist
+            if not os.path.exists(thumb_path):
+                try:
+                    with Image.open(original_path) as img:
+                        # Convert to RGB to avoid errors with PNGs/Transparency
+                        if img.mode in ("RGBA", "P"): 
+                            img = img.convert("RGB")
+                        
+                        # Resize to max 400x400 (good for grid)
+                        img.thumbnail((400, 400)) 
+                        
+                        # Save compressed
+                        img.save(thumb_path, quality=80, optimize=True)
+                except Exception as e:
+                    print(f" ! Error processing {filename}: {e}")
             
     # Sort alphabetically or by modification time if you prefer
     images.sort()

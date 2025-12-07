@@ -18,6 +18,10 @@ openpyxl==3.1.5
     # via tamarindi-web
 pandas==2.3.3
     # via tamarindi-web
+pillow==11.3.0 ; python_full_version < '3.10'
+    # via tamarindi-web
+pillow==12.0.0 ; python_full_version >= '3.10'
+    # via tamarindi-web
 python-dateutil==2.9.0.post0
     # via pandas
 pytz==2025.2

@@ -14,12 +14,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 allImages = data.gallery.map(filename => `images/gallery/${filename}`);
                 
                 // 2. Build the grid
-                allImages.forEach((imgPath, index) => {
+                allImages.forEach((fullPath, index) => {
+                    // Construct the path to the thumbnail
+                    // Logic: "images/gallery/photo.jpg" -> "images/gallery/thumbnails/photo.jpg"
+                    const parts = fullPath.split('/');
+                    const filename = parts.pop();
+                    const thumbPath = parts.join('/') + '/thumbnails/' + filename;
+
                     const div = document.createElement('div');
                     div.className = 'gallery-item';
-                    // Pass the INDEX instead of the path
+                    // SRC = Thumbnail, CLICK = Full Index (which loads fullPath)
                     div.innerHTML = `
-                        <img src="${imgPath}" alt="Team Photo" loading="lazy" onclick="openLightbox(${index})">
+                        <img src="${thumbPath}" alt="Team Photo" loading="lazy" onclick="openLightbox(${index})">
                     `;
                     container.appendChild(div);
                 });
