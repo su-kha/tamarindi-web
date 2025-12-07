@@ -246,20 +246,82 @@ table.stats-table th:hover {
 }
 
 
-/* --- RESPONSIVE MATCH LIST --- */
-#match-list {
+/* --- MATCH ARCHIVE STYLES --- */
+
+/* The Grid Container */
+.match-grid {
     display: grid;
-    /* The Magic Line: Fits as many columns as possible, but never smaller than 300px */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 20px; /* Space between cards */
+    /* auto-fit is better than auto-fill: it stretches cards to fill the row */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
     padding: 10px 0;
 }
 
-/* Ensure the cards take up full height/width of their grid cell */
+/* The Card Look */
 .match-card {
-    width: 100%; 
-    box-sizing: border-box; /* Ensures padding doesn't break the width */
-    margin-bottom: 0; /* Remove old margin if it exists, grid handles the gap */
+    background: white;
+    border: 2px solid black;
+    padding: 15px;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Date Badge */
+.match-date {
+    background: var(--team-pink);
+    color: white;
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Score Section */
+.match-score {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 15px 0;
+    border-top: 1px dashed #ccc;
+    border-bottom: 1px dashed #ccc;
+    padding: 10px 0;
+}
+
+/* Scorers List */
+.scorers {
+    font-size: 0.9rem;
+    color: #555;
+    min-height: 40px;
+}
+
+/* YouTube Button */
+.yt-button {
+    display: block;
+    width: 100%;
+    background: #cc0000; /* YouTube Red */
+    color: white;
+    text-align: center;
+    padding: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 15px;
+    cursor: pointer;
+    border: 2px solid black;
+    box-sizing: border-box; /* Ensures padding stays inside */
+}
+
+/* Video Player Container */
+.video-container {
+    margin-top: 15px;
+    display: none; /* Hidden until clicked */
+}
+
+iframe {
+    width: 100%;
+    height: 200px;
+    border: none;
 }
 
 /* --- MATCH RESULT COLORS --- */
