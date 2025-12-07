@@ -512,13 +512,16 @@ iframe {
     color: var(--team-pink);
 }
 
-/* --- DESKTOP SPECIFIC: Arrows OUTSIDE the photo --- */
+/* --- DESKTOP SPECIFIC: Arrows fixed to Screen Edges --- */
 @media (min-width: 769px) {
+    .prev, .next {
+        position: fixed; /* Locks them to the viewport/screen */
+    }
     .prev {
-        left: -80px; /* Push out to the left */
+        left: 50px; /* Always 50px from the left edge */
     }
     .next {
-        right: -80px; /* Push out to the right */
+        right: 50px; /* Always 50px from the right edge */
     }
 }
 
