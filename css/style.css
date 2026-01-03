@@ -562,3 +562,53 @@ iframe {
 .close-btn:hover {
     color: var(--team-pink);
 }
+
+/* --- DECLARATIONS / BLOG --- */
+.declaration-post {
+    background: white;
+    border: 1px solid black;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 5px 5px 0px #eee;
+}
+
+.post-header {
+    border-bottom: 2px solid var(--team-pink);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.post-date {
+    background-color: black;
+    color: white;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.post-header h2 {
+    margin: 10px 0 0 0;
+    font-size: 1.5rem;
+    color: black;
+    border: none; /* Override default h2 border */
+}
+
+.post-content {
+    font-family: Arial, sans-serif; /* Easier to read for long text */
+    line-height: 1.6;
+}
+
+.meta-row {
+    display: flex;
+    gap: 15px; /* Space between Date and Author */
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.post-author {
+    font-size: 0.8rem;
+    color: #555;
+    font-style: italic;
+    font-weight: bold;
+}

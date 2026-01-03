@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tamarindi F.C. - Work in Progress</title>
+    <title>Tamarindi F.C. - Official Statements</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="main-container" style="text-align:center; min-height: 80vh; display:flex; flex-direction:column; justify-content:center;">
-        
+
+    <div class="main-container">
+
         <header>
-            <h1>UNDER CONSTRUCTION</h1>
+            <a href="index.html" style="text-decoration:none; color:black;">
+                <h1>TAMARINDI F.C.</h1>
+            </a>
+            <p class="tagline">Official Press Releases</p>
         </header>
 
         <div class="content-wrapper" style="display:block;">
-            <p>The gaffer is still working on the tactics board.</p>
-            <p>Check back later for stats, fixtures, and highlights.</p>
             
-            <div style="margin-top: 30px;">
-                <a href="index.html" style="background:var(--team-pink); color:white; padding:10px 20px; text-decoration:none; border:2px solid black; font-weight:bold;">
-                    &larr; Back to Home
-                </a>
+            <a href="index.html" style="display:inline-block; margin-bottom:20px; color:black; font-weight:bold; text-decoration:none;">
+                &larr; Back to Home
+            </a>
+
+            <div id="declarations-list">
+                <p>Loading statements...</p>
             </div>
+
         </div>
 
         <footer>
@@ -29,5 +34,47 @@
         </footer>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('data/website_data_cache.json')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('declarations-list');
+                    
+                    if (data.declarations && data.declarations.length > 0) {
+                        container.innerHTML = '';
+                        
+                        data.declarations.forEach(post => {
+                            const article = document.createElement('article');
+                            article.className = 'declaration-post';
+                            
+                            // Convert newlines to <br> for proper formatting
+                            const formattedBody = post.content.replace(/\n/g, '<br>');
+                            
+                            article.innerHTML = `
+                                <div class="post-header">
+                                    <div class="meta-row">
+                                        <span class="post-date">${post.date}</span>
+                                        <span class="post-author">✍ ${post.author}</span>
+                                    </div>
+                                    <h2>${post.title}</h2>
+                                </div>
+                                <div class="post-content">
+                                    <p>${formattedBody}</p>
+                                </div>
+                                <hr>
+                            `;
+                            container.appendChild(article);
+                        });
+                    } else {
+                        container.innerHTML = '<p>No official statements have been released yet.</p>';
+                    }
+                })
+                .catch(err => console.error(err));
+        });
+    </script>
+    
+    <script src="js/back_to_top.js"></script>
 </body>
 </html>

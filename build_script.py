@@ -380,6 +380,87 @@ def scan_gallery_images():
     print(f"Found {len(images)} images in gallery.")
     return images
 
+
+# --- DECLARATIONS SCANNER (Metadata Header Version) ---
+def scan_declarations():
+    """
+    Scans 'declarations' folder for .txt files.
+    Parses 'Title:', 'Date:', and 'Author:' from the top of the file.
+    """
+    
+    root_dir = os.path.dirname(BASE_DIR)
+    decl_dir = os.path.join(root_dir, 'declarations')
+    
+    if not os.path.exists(decl_dir):
+        return []
+    
+    posts = []
+    print(f"Scanning declarations at: {decl_dir}")
+    
+    for filename in os.listdir(decl_dir):
+        if filename.endswith(".txt"):
+            file_path = os.path.join(decl_dir, filename)
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                
+                # Default values if missing
+                metadata = {
+                    "title": "Untitled",
+                    "date": "1970-01-01",
+                    "author": "Admin"
+                }
+                
+                content_lines = []
+                is_header = True
+                
+                for line in lines:
+                    stripped = line.strip()
+                    
+                    # Stop parsing headers when we hit an empty line
+                    if is_header and stripped == "":
+                        is_header = False
+                        continue
+                    
+                    if is_header:
+                        # Check for "Key: Value" pattern
+                        if ':' in line:
+                            key, value = line.split(':', 1)
+                            key = key.strip().lower()
+                            value = value.strip()
+                            
+                            if key in metadata:
+                                metadata[key] = value
+                            else:
+                                # Treat unknown headers as content? No, just ignore.
+                                pass
+                        else:
+                            # If a line doesn't have ':', assume headers are done
+                            is_header = False
+                            content_lines.append(line)
+                    else:
+                        content_lines.append(line)
+                
+                # Reassemble the body text
+                full_content = "".join(content_lines).strip()
+                
+                # Add to list
+                posts.append({
+                    "date": metadata['date'],
+                    "title": metadata['title'],
+                    "author": metadata['author'],
+                    "content": full_content
+                })
+                
+            except Exception as e:
+                print(f"Error reading {filename}: {e}")
+                
+    # Sort by Date (Newest first)
+    posts.sort(key=lambda x: x['date'], reverse=True)
+    print(f"Found {len(posts)} declarations.")
+    return posts
+
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     print("Starting conversion...")
@@ -416,6 +497,8 @@ if __name__ == "__main__":
     final_data['matches'] = all_matches
 
     final_data['gallery'] = scan_gallery_images()
+
+    final_data['declarations'] = scan_declarations()
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         json.dump(final_data, f, indent=4)
