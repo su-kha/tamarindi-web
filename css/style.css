@@ -612,3 +612,33 @@ iframe {
     font-style: italic;
     font-weight: bold;
 }
+
+/* --- FOOTER SOCIAL LINKS --- */
+.social-links {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center; /* Center them */
+    gap: 20px; /* Space between items */
+    flex-wrap: wrap; /* Wrap on tiny screens */
+}
+
+.social-link {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    font-size: 1rem;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent; /* Invisible line */
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Hover Effect: Pink Text + Pink Underline */
+.social-link:hover {
+    color: var(--team-pink);
+    border-bottom: 2px solid var(--team-pink);
+    transform: translateY(-2px);
+}
