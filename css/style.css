@@ -642,3 +642,43 @@ iframe {
     border-bottom: 2px solid var(--team-pink);
     transform: translateY(-2px);
 }
+
+/* --- GOOGLE TRANSLATE WIDGET --- */
+#google_translate_element {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 2px solid black;
+    padding: 2px;
+    background-color: white;
+}
+
+/* Hide the "Powered by Google" branding to keep it clean */
+.goog-logo-link {
+    display: none !important;
+}
+
+.goog-te-gadget {
+    color: transparent !important; /* Hides the 'Powered by' text */
+    font-family: 'Courier New', Courier, monospace !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+    color: black !important;
+    background-color: white !important;
+    border: none !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: bold !important;
+    font-size: 0.9rem !important;
+    margin: 4px 0 !important;
+    cursor: pointer;
+    outline: none;
+}
+
+/* Hide the huge top banner that Google sometimes adds */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+} 
+body {
+    top: 0px !important; 
+}
