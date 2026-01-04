@@ -388,8 +388,7 @@ def scan_declarations():
     Parses 'Title:', 'Date:', and 'Author:' from the top of the file.
     """
     
-    root_dir = os.path.dirname(BASE_DIR)
-    decl_dir = os.path.join(root_dir, 'declarations')
+    decl_dir = os.path.join(BASE_DIR, 'declarations')
     
     if not os.path.exists(decl_dir):
         return []
