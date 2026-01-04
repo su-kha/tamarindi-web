@@ -643,65 +643,72 @@ iframe {
     transform: translateY(-2px);
 }
 
-/* --- GOOGLE TRANSLATE WIDGET (Retro Style) --- */
+/* --- GOOGLE TRANSLATE WIDGET (Big Retro Fix) --- */
 #google_translate_element {
+    position: relative;
     display: inline-block;
-    margin: 10px 0;
+    margin: 15px 0;
+    min-height: 40px; /* Ensures it doesn't collapse */
 }
 
-/* 1. HIDE ALL GOOGLE BRANDING */
+/* 1. HIDE GOOGLE BRANDING (Text & Logo) */
 .goog-logo-link, .goog-te-gadget span, .goog-te-gadget-icon {
     display: none !important;
 }
 
-/* 2. STYLE THE CONTAINER */
+/* 2. GADGET CONTAINER */
 .goog-te-gadget {
-    color: transparent !important; /* Hides 'Powered by Google' text */
-    font-size: 0 !important;
+    color: transparent !important;
+    font-size: 0 !important; /* Hides text nodes */
 }
 
-/* 3. STYLE THE DROPDOWN (The Rectangle) */
+/* 3. THE DROPDOWN (Big, Square, & Custom Arrow) */
 .goog-te-gadget .goog-te-combo {
+    /* SIZE & SHAPE */
+    width: auto !important;
+    height: 45px !important;      /* TALL box */
+    font-size: 18px !important;   /* BIG text */
+    padding: 5px 40px 5px 15px !important; /* Room for arrow on right */
+    margin: 0 !important;
+    
+    /* RETRO STYLE */
     color: black !important;
     background-color: white !important;
-    border: 2px solid black !important;
-    border-radius: 0 !important; /* Sharp corners */
-    
+    border: 3px solid black !important;
+    border-radius: 0 !important;  /* Sharp corners */
     font-family: 'Courier New', Courier, monospace !important;
     font-weight: bold !important;
-    font-size: 14px !important;
-    
-    padding: 5px 10px !important;
+    box-shadow: 4px 4px 0px #000 !important;
     cursor: pointer !important;
     outline: none !important;
-    box-shadow: 3px 3px 0px #ccc !important; /* Retro shadow */
-    transition: all 0.2s ease !important;
-    
-    /* Fix height issues */
-    height: auto !important;
-    line-height: normal !important;
-    margin: 0 !important;
+
+    /* CUSTOM ARROW (Replaces ugly browser arrow) */
+    appearance: none !important; /* Wipes default style */
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 20px !important;
 }
 
-/* Hover Effect for the Dropdown */
+/* 4. HOVER EFFECT */
 .goog-te-gadget .goog-te-combo:hover {
     box-shadow: 4px 4px 0px var(--team-pink) !important;
     border-color: black !important;
+    background-color: #fff0f5 !important; /* Light pink tint */
 }
 
-/* 4. STYLE THE OPTIONS LIST (Works in Chrome/Firefox) */
-/* Note: Mobile Safari (iPhone) often ignores this and uses the system wheel */
+/* 5. DROPDOWN OPTIONS (Attempts to override Blue) */
+/* Works on Chrome/Windows. Mac/iOS often ignores this. */
 .goog-te-gadget .goog-te-combo option {
     background-color: white !important;
     color: black !important;
-    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 16px !important;
     padding: 10px !important;
+    font-family: 'Courier New', Courier, monospace !important;
 }
 
-/* Hide the top banner frame if it tries to appear */
-.goog-te-banner-frame {
-    display: none !important;
-}
-body {
-    top: 0px !important;
-}
+/* Hide top banner */
+.goog-te-banner-frame { display: none !important; }
+body { top: 0px !important; }
