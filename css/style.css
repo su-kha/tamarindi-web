@@ -643,64 +643,75 @@ iframe {
     transform: translateY(-2px);
 }
 
-/* --- GOOGLE TRANSLATE WIDGET (Safe Retro Version) --- */
+/* --- GOOGLE TRANSLATE WIDGET (Label + Size Fix) --- */
 #google_translate_element {
+    position: relative;
     display: inline-block;
+    min-width: 200px; /* 1. Force the box to be wide enough */
     margin: 15px 0;
 }
 
-/* 1. HIDE GOOGLE TEXT/LOGO DIRECTLY */
-/* We target the specific children instead of hiding the whole parent */
-.goog-te-gadget span {
+/* 2. Add a Custom Label ABOVE the box */
+#google_translate_element::before {
+    content: "Select Language 🌍"; /* The text you wanted */
+    display: block;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: black;
+    text-transform: uppercase;
+}
+
+/* 3. Hide the Google "Powered By" text/logo safely */
+.goog-logo-link, .goog-te-gadget-icon {
     display: none !important;
 }
-.goog-te-gadget-icon {
-    display: none !important;
-}
-/* This hides the "Powered by" text which is often inside a text node */
+
 .goog-te-gadget {
-    color: transparent !important;
+    color: transparent !important; /* Hide only the Google text */
     font-size: 0 !important;
 }
 
-/* 2. STYLE THE DROPDOWN BOX */
+/* 4. Style the Dropdown Box itself */
 .goog-te-gadget .goog-te-combo {
-    /* RESET TEXT VISIBILITY */
+    /* Make text visible again */
     color: black !important;
     font-size: 16px !important;
-    
-    /* FORCE DIMENSIONS */
+    font-weight: bold !important;
+    font-family: 'Courier New', Courier, monospace !important;
+
+    /* Make the box BIG */
     display: block !important;
-    height: 40px !important;
+    width: 100% !important;  /* Fills the 200px container */
+    height: 45px !important; /* Tall and clickable */
     padding: 5px 10px !important;
     margin: 0 !important;
     
-    /* RETRO LOOK */
-    background: white !important;
+    /* Retro Styling */
+    background-color: white !important;
     border: 3px solid black !important;
     border-radius: 0 !important;
-    font-family: 'Courier New', Courier, monospace !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
     box-shadow: 4px 4px 0px #ccc !important;
-    
-    /* CLEANUP */
+    cursor: pointer !important;
     outline: none !important;
-    appearance: auto !important;
+    
+    /* Use default arrow (avoids warnings and ensures it works) */
+    appearance: auto !important; 
 }
 
-/* 3. HOVER EFFECT */
+/* Hover Effect */
 .goog-te-gadget .goog-te-combo:hover {
     box-shadow: 4px 4px 0px var(--team-pink) !important;
     border-color: black !important;
 }
 
-/* 4. OPTIONS BACKGROUND */
+/* Fix for Options */
 .goog-te-gadget .goog-te-combo option {
-    background-color: white !important;
     color: black !important;
+    background: white !important;
 }
 
-/* HIDE TOP BANNER */
+/* Hide Google Top Bar */
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
