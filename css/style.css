@@ -804,11 +804,15 @@ body { top: 0px !important; }
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
 
-/* Hide the Google Widget SAFELY */
+/* --- GOOGLE TRANSLATE HIDDEN CONTAINER --- */
+/* We use a specific ID to hide it safely */
 #hidden-google-div {
-    position: absolute;
+    position: absolute; /* Take it out of flow */
+    top: 0;
+    left: 0;
     width: 0;
     height: 0;
-    overflow: hidden;
-    visibility: hidden; /* Invisible, but technically "there" */
+    overflow: hidden; /* Ensure it takes 0 space */
+    visibility: hidden; /* Invisible but RENDERED */
+    z-index: -1;
 }
