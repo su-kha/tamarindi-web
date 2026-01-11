@@ -803,3 +803,12 @@ body { top: 0px !important; }
 /* Hide Google Top Banner Frame globally */
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
+
+/* Hide the Google Widget SAFELY */
+#hidden-google-div {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden; /* Invisible, but technically "there" */
+}
