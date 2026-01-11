@@ -643,77 +643,55 @@ iframe {
     transform: translateY(-2px);
 }
 
-/* --- GOOGLE TRANSLATE WIDGET (V3: Stable & Big) --- */
+/* --- GOOGLE TRANSLATE WIDGET (Final Visibility Fix) --- */
 #google_translate_element {
     position: relative;
-    display: inline-block;
-    margin: 15px 0;
-    min-height: 50px; /* Force it to have height */
-    min-width: 200px; /* Force it to have width */
+    min-height: 40px; /* Reserves space so it doesn't pop in */
+    margin-bottom: 20px;
+    z-index: 100;
 }
 
-/* 1. HIDE GOOGLE BRANDING (The Text/Logo) */
-/* We make the text transparent instead of size 0 to prevent collapsing */
-.goog-logo-link, .goog-te-gadget-icon {
-    display: none !important;
-}
-
+/* 1. HIDE EVERYTHING IN THE GOOGLE CONTAINER */
 .goog-te-gadget {
-    color: transparent !important; /* Hides 'Powered by...' */
+    visibility: hidden; /* Makes the 'Powered by' text invisible */
+    height: 40px;       /* Keeps the layout stable */
+    position: relative;
 }
 
-/* 2. THE DROPDOWN (The Select Box) */
+/* 2. SHOW *ONLY* THE DROPDOWN */
 .goog-te-gadget .goog-te-combo {
-    /* RESET TEXT VISIBILITY FOR THE BOX ITSELF */
-    color: black !important;
+    visibility: visible; /* Force the dropdown back to visible */
     
-    /* SIZE & SHAPE */
-    display: block !important;
-    width: 100% !important;
-    height: 45px !important;
-    font-size: 16px !important;
-    padding: 10px !important;
-    margin: 0 !important;
+    /* POSITIONING */
+    display: block;
+    position: absolute; /* Detach from the hidden text flow */
+    top: 0;
+    left: 50%;          /* Center it */
+    transform: translateX(-50%);
     
-    /* RETRO STYLE */
-    background-color: white !important;
-    border: 3px solid black !important;
-    border-radius: 0 !important;
-    font-family: 'Courier New', Courier, monospace !important;
-    font-weight: bold !important;
-    box-shadow: 4px 4px 0px #000 !important;
-    cursor: pointer !important;
-    outline: none !important;
+    /* RETRO STYLING */
+    width: auto;
+    min-width: 200px;   /* Ensure it's wide enough to see */
+    height: 40px;
+    font-size: 16px;
+    padding: 5px 10px;
     
-    /* REMOVE DEFAULT BLUE FOCUS RING */
-    -webkit-tap-highlight-color: transparent !important;
+    color: black;
+    background: white;
+    border: 2px solid black;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 4px 4px 0px #ccc;
+    outline: none;
 }
 
-/* 3. CUSTOM ARROW (Replaces the default ugly arrow) */
-/* This works on most modern browsers to hide the default arrow */
-.goog-te-gadget .goog-te-combo {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 15px center !important;
-    background-size: 15px !important;
-}
-
-/* 4. HOVER EFFECT */
+/* 3. HOVER EFFECT */
 .goog-te-gadget .goog-te-combo:hover {
-    box-shadow: 4px 4px 0px var(--team-pink) !important;
-    border-color: black !important;
+    box-shadow: 4px 4px 0px var(--team-pink);
+    border-color: black;
 }
 
-/* 5. DROPDOWN OPTIONS */
-.goog-te-gadget .goog-te-combo option {
-    background-color: white !important;
-    color: black !important;
-    padding: 10px !important;
-}
-
-/* Hide top banner */
+/* Hide top banner frame */
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
