@@ -72,7 +72,17 @@
                 </div>
 
                 <div class="footer-right">
-                    <div id="google_translate_element"></div>
+                    <select id="custom-lang-selector" onchange="triggerGoogleTranslate(this.value)">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                    </select>
+
+                    <div id="hidden-google-div" style="display:none;">
+                        <div id="google_translate_element"></div>
+                    </div>
                     <script src="js/google_translate.js"></script>
                 </div>
 

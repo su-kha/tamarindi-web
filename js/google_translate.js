@@ -7,6 +7,14 @@ function googleTranslateElementInit() {
     }, 'google_translate_element');
 }
 
+function triggerGoogleTranslate(langCode) {
+    const googleCombo = document.querySelector('.goog-te-combo');
+    if (googleCombo) {
+        googleCombo.value = langCode;
+        googleCombo.dispatchEvent(new Event('change'));
+    }
+}
+
 // Auto-load the Google script
 (function() {
     var googleScript = document.createElement('script');

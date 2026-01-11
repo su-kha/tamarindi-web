@@ -759,3 +759,47 @@ body { top: 0px !important; }
         display: inline-block;
     }
 }
+
+/* --- CUSTOM LANGUAGE SELECTOR --- */
+#custom-lang-selector {
+    display: inline-block;
+    width: 100%;
+    min-width: 200px;
+    height: 45px;
+    padding: 5px 10px;
+    margin: 15px 0;
+    
+    /* RETRO STYLE */
+    background-color: white;
+    color: black;
+    border: 3px solid black;
+    border-radius: 0; /* Sharp corners */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0px #ccc;
+    outline: none;
+    
+    /* Standard Arrow (Reliable) */
+    appearance: auto; 
+}
+
+/* Hover Effect */
+#custom-lang-selector:hover {
+    box-shadow: 4px 4px 0px var(--team-pink);
+    border-color: black;
+    background-color: #fff0f5; /* Light Pink Tint */
+}
+
+/* Mobile Fix: Ensure it doesn't zoom */
+@media (max-width: 768px) {
+    #custom-lang-selector {
+        font-size: 16px; /* 16px prevents iOS zoom on focus */
+        background-color: white;
+    }
+}
+
+/* Hide Google Top Banner Frame globally */
+.goog-te-banner-frame { display: none !important; }
+body { top: 0px !important; }
