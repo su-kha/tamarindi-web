@@ -651,18 +651,6 @@ iframe {
     margin: 15px 0;
 }
 
-/* 2. Add a Custom Label ABOVE the box */
-#google_translate_element::before {
-    content: "Select Language 🌍"; /* The text you wanted */
-    display: block;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: black;
-    text-transform: uppercase;
-}
-
 /* 3. Hide the Google "Powered By" text/logo safely */
 .goog-logo-link, .goog-te-gadget-icon {
     display: none !important;
