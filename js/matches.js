@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if(data.matches) {
                 renderMatches(data.matches);
             } else {
-                document.getElementById('match-list').innerHTML = "<p>No match data found in archive.</p>";
+                document.getElementById('match-list').innerHTML = "<p>L'archivio è vuoto.</p>";
             }
         });
 });
@@ -43,17 +43,17 @@ function renderMatches(matches) {
         let penalties = match.scorers.filter(s => s.includes('(Pen)')).map(s => s.replace(' (Pen)', '')).join(', ');
         
         if (normalGoals) {
-            scorersHtml += '<div style="font-weight:bold;">⚽ Goals:</div>';
+            scorersHtml += '<div style="font-weight:bold;">⚽ Goal:</div>';
             scorersHtml += `<div style="margin-left: 10px; margin-bottom: 5px;">${normalGoals}</div>`;
         }
         if (penalties) {
-            scorersHtml += '<div style="font-weight:bold; color:#ff00aa;">🎯 Penalties:</div>';
+            scorersHtml += '<div style="font-weight:bold; color:#ff00aa;">🎯 Rigori:</div>';
             scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${penalties}</div>`;
         }
         
         // --- 2b. Saved Penalties (NEW DISPLAY) ---
         if (match.saved_penalty_goalkeepers.length > 0) {
-             scorersHtml += '<div style="font-weight:bold; color:#0056b3;">🧤 Penalty Saved:</div>';
+             scorersHtml += '<div style="font-weight:bold; color:#0056b3;">🧤 Rigore Parato:</div>';
              scorersHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${match.saved_penalty_goalkeepers.join(', ')}</div>`;
         }
 
@@ -61,19 +61,19 @@ function renderMatches(matches) {
         // --- 3. Card HTML ---
         let cardsHtml = '';
         if (match.yellow_cards_recipients.length > 0) {
-            cardsHtml += '<div style="font-weight:bold; color:#A1881B;">🟡 Yellow Cards:</div>';
+            cardsHtml += '<div style="font-weight:bold; color:#A1881B;">🟡 Cartellini Gialli:</div>';
             cardsHtml += `<div style="margin-left: 10px; font-size:0.9rem; margin-bottom: 5px;">${match.yellow_cards_recipients.join(', ')}</div>`;
         }
         
         let redCardsHtml = '';
         if (match.red_cards_recipients.length > 0) {
-            redCardsHtml += '<div style="font-weight:bold; color:#CC0000;">🔴 Red Cards:</div>';
+            redCardsHtml += '<div style="font-weight:bold; color:#CC0000;">🔴 Cartellini Rossi:</div>';
             redCardsHtml += `<div style="margin-left: 10px; font-size:0.9rem;">${match.red_cards_recipients.join(', ')}</div>`;
         }
         
         // --- 4. Title Logic ---
         let matchTitle = '';
-        if (match.home_status === 'Home') {
+        if (match.home_status === 'In Casa') {
             matchTitle = `Tamarindi F.C. vs <br> ${match.opponent}`;
         } else {
             matchTitle = `${match.opponent} vs <br> Tamarindi F.C.`;
@@ -105,7 +105,7 @@ function renderMatches(matches) {
                     data-opponent="${match.opponent}"
                     data-date="${match.date}"
                     data-video-id="${match.videoId}">
-                    ▶ Watch Highlights
+                    ▶ Vedi Highlights
                 </div>`
                 : `<div class="yt-button" style="background:#444; cursor:default; border-color:#222;">Video Not Available</div>`
             }
@@ -122,7 +122,7 @@ function loadVideo(btn, opponent, date) {
 
     if (container.innerHTML !== '') {
         container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        btn.textContent = container.style.display === 'none' ? "▶ Show Video" : "▼ Hide Video";
+        btn.textContent = container.style.display === 'none' ? "▶ Mostra Video" : "▼ Nascondi Video";
         return;
     }
 
@@ -135,10 +135,10 @@ function loadVideo(btn, opponent, date) {
                 allowfullscreen>
             </iframe>`;
         container.style.display = 'block';
-        btn.textContent = "▼ Hide Video";
-        btn.style.background = '#ff0000';
+        btn.textContent = "▼ Nascondi Video";
+        btn.style.background = '#cc0000';
     } else {
-        btn.textContent = "Video Not Found";
+        btn.textContent = "Video Non Disponibile";
         btn.style.background = "#555";
         btn.onclick = null;
     }

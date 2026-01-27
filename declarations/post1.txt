@@ -1,8 +1,7 @@
-Title: Welcome to the New Era
-Date: 2026-01-05
-Author: The President
+Title: Un nuovo inizio!
+Date: 2026-01-27
+Author: Il Presidente
 
-We are proud to announce the launch of our new website.
-It features automated stats, a gallery, and this press release system.
+Siamo orgogliosi di annunciare il lancio del nostro nuovo sito web.
 
 Forza Tamarindi!

@@ -166,7 +166,7 @@ def extract_matches(df, season_key):
                 "saved_penalty_goalkeepers": [], # <-- NEW LIST
                 "shootout_score": shootout_score,
                 "season": season_key,
-                "home_status": "Home" if tamarindi_is_home else "Away"
+                "home_status": "In Casa" if tamarindi_is_home else "Fuori Casa"
             }
         
         elif current_match:
