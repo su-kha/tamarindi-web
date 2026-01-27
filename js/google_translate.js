@@ -1,31 +1,47 @@
 // 1. Initialize Google Translate
 function googleTranslateElementInit() {
     new google.translate.TranslateElement({
-        pageLanguage: 'it', // Your site language
+        pageLanguage: 'it',
         includedLanguages: 'en,it,es,fr,de',
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
         autoDisplay: false
     }, 'google_translate_element');
 }
 
-// 2. The Trigger Function with "Polling" (Retry Logic)
+// 2. The Trigger Function (with 20 retries max)
+let attempts = 0;
+
 function triggerGoogleTranslate(langCode) {
+    // Look for the dropdown
     const googleCombo = document.querySelector('.goog-te-combo');
-    
+    const container = document.getElementById('google_translate_element');
+
     if (googleCombo) {
-        // SUCCESS: It exists! Change the value.
+        console.log("Success: Widget found!");
         googleCombo.value = langCode;
         googleCombo.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
-        // FAIL: It's not ready yet. Wait 500ms and try again.
-        console.log("Google Translate widget not ready... retrying.");
+        // Debugging info
+        attempts++;
+        if (attempts > 20) {
+            console.error("Gave up finding Google Translate. Check if 'google_translate_element' div exists in HTML.");
+            return; 
+        }
+
+        console.log(`Attempt ${attempts}: Widget not ready yet...`);
+        
+        // Check if the container itself exists (to rule out HTML errors)
+        if (!container) {
+            console.error("CRITICAL ERROR: <div id='google_translate_element'> is missing from the page!");
+        }
+
+        // Retry in 500ms
         setTimeout(() => triggerGoogleTranslate(langCode), 500);
     }
 }
 
-// 3. Auto-load the Google Script (HTTPS forced)
+// 3. Auto-load Script
 (function() {
-    // Check if script is already added to prevent duplicates
     if (!document.getElementById('google-translate-script')) {
         var googleScript = document.createElement('script');
         googleScript.id = 'google-translate-script';

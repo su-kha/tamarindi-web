@@ -804,15 +804,15 @@ body { top: 0px !important; }
 .goog-te-banner-frame { display: none !important; }
 body { top: 0px !important; }
 
-/* --- GOOGLE TRANSLATE HIDDEN CONTAINER --- */
-/* We use a specific ID to hide it safely */
+/* --- GOOGLE TRANSLATE HIDDEN CONTAINER (The "Off-Screen" Fix) --- */
 #hidden-google-div {
-    position: absolute; /* Take it out of flow */
+    display: block !important; /* Force browser to render it */
+    position: fixed !important; 
     top: 0;
-    left: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden; /* Ensure it takes 0 space */
-    visibility: hidden; /* Invisible but RENDERED */
-    z-index: -1;
+    left: -10000px; /* Move it far off-screen */
+    width: 300px !important; /* Give it plenty of space to render */
+    height: 300px !important; 
+    opacity: 0; /* Make it transparent just in case */
+    pointer-events: none; /* Mouse clicks pass through it */
+    z-index: -1000;
 }
