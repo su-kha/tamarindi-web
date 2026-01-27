@@ -197,12 +197,12 @@ def extract_matches(df, season_key):
             if season_key == 'season_19_20':
                 potential_scorer_home = str(row[4]).strip() if not pd.isna(row[4]) else ''
                 potential_scorer_away = str(row[6]).strip() if not pd.isna(row[6]) else ''
-                scorer_col_value = potential_scorer_home if current_match['home_status'] == 'Home' else potential_scorer_away
+                scorer_col_value = potential_scorer_home if current_match['home_status'] == 'In Casa' else potential_scorer_away
             else:
                 # Other seasons use Col 2 (Home) or Col 5 (Away)
                 potential_scorer_home = str(row[2]).strip() if not pd.isna(row[2]) else ''
                 potential_scorer_away = str(row[5]).strip() if not pd.isna(row[5]) else ''
-                scorer_col_value = potential_scorer_home if current_match['home_status'] == 'Home' else potential_scorer_away
+                scorer_col_value = potential_scorer_home if current_match['home_status'] == 'In Casa' else potential_scorer_away
             
             if scorer_col_value and not pd.isna(scorer_col_value):
                 scorer_col_value = scorer_col_value.replace('  ', ' ').strip()

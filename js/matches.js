@@ -122,7 +122,7 @@ function loadVideo(btn, opponent, date) {
 
     if (container.innerHTML !== '') {
         container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        btn.textContent = container.style.display === 'none' ? "▶ Mostra Video" : "▼ Nascondi Video";
+        btn.textContent = container.style.display === 'none' ? "▶ Vedi Highlights" : "▼ Nascondi Video";
         return;
     }
 
