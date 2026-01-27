@@ -806,13 +806,11 @@ body { top: 0px !important; }
 
 /* --- GOOGLE TRANSLATE HIDDEN CONTAINER (The "Off-Screen" Fix) --- */
 #hidden-google-div {
-    display: block !important; /* Force browser to render it */
-    position: fixed !important; 
+    display: block !important;       /* MUST be block */
+    position: fixed !important;      /* Float it */
     top: 0;
-    left: -10000px; /* Move it far off-screen */
-    width: 300px !important; /* Give it plenty of space to render */
+    left: -10000px;                  /* Move it far off screen */
+    width: 300px !important;         /* Give it size so Google thinks it's visible */
     height: 300px !important; 
-    opacity: 0; /* Make it transparent just in case */
-    pointer-events: none; /* Mouse clicks pass through it */
     z-index: -1000;
 }

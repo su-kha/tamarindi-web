@@ -1,46 +1,39 @@
-// 1. Initialize Google Translate
-function googleTranslateElementInit() {
+// 1. Force the function to be Global so Google can find it
+window.googleTranslateElementInit = function() {
+    console.log("🚀 Google Translate Script Loaded & Initializing...");
     new google.translate.TranslateElement({
-        pageLanguage: 'it',
+        pageLanguage: 'it', // Matches your <html lang="it">
         includedLanguages: 'en,it,es,fr,de',
         layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
         autoDisplay: false
     }, 'google_translate_element');
 }
 
-// 2. The Trigger Function (with 20 retries max)
+// 2. The Trigger Function (Retries up to 20 times)
 let attempts = 0;
 
 function triggerGoogleTranslate(langCode) {
-    // Look for the dropdown
     const googleCombo = document.querySelector('.goog-te-combo');
-    const container = document.getElementById('google_translate_element');
-
+    
     if (googleCombo) {
-        console.log("Success: Widget found!");
+        // Widget Found! Change language.
+        console.log("✅ Widget found. Changing language to:", langCode);
         googleCombo.value = langCode;
         googleCombo.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
-        // Debugging info
+        // Widget Not Found yet. Retry.
         attempts++;
         if (attempts > 20) {
-            console.error("Gave up finding Google Translate. Check if 'google_translate_element' div exists in HTML.");
+            console.error("❌ Gave up finding Google Translate widget.");
             return; 
         }
-
-        console.log(`Attempt ${attempts}: Widget not ready yet...`);
         
-        // Check if the container itself exists (to rule out HTML errors)
-        if (!container) {
-            console.error("CRITICAL ERROR: <div id='google_translate_element'> is missing from the page!");
-        }
-
         // Retry in 500ms
         setTimeout(() => triggerGoogleTranslate(langCode), 500);
     }
 }
 
-// 3. Auto-load Script
+// 3. Load the Script (if not already loaded)
 (function() {
     if (!document.getElementById('google-translate-script')) {
         var googleScript = document.createElement('script');
