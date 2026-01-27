@@ -105,11 +105,11 @@ function renderTable(key) {
         title.textContent = "Hall of Fame (All Time)";
         thead.innerHTML = `
             <tr>
-                ${createHeader('Player', 'name')}
-                ${createHeader('Role', 'role')}
-                ${createHeader('Total Apps', 'total_apps')}
-                ${createHeader('Total Goals', 'total_goals')}
-                ${createHeader('Total Assists', 'total_assists')}
+                ${createHeader('Giocatore', 'name')}
+                ${createHeader('Ruolo', 'role')}
+                ${createHeader('Presenze Totali', 'total_apps')}
+                ${createHeader('Goal Totali', 'total_goals')}
+                ${createHeader('Assist Totali', 'total_assists')}
             </tr>`;
         
         tbody.innerHTML = '';
@@ -126,16 +126,16 @@ function renderTable(key) {
         });
 
     } else {
-        title.textContent = key.replace('season_', 'Season ').replace('_', '/');
+        title.textContent = key.replace('season_', 'Stagione ').replace('_', '/');
         thead.innerHTML = `
             <tr>
-                ${createHeader('Player', 'name')}
+                ${createHeader('Giocatore', 'name')}
                 ${createHeader('#', 'number')}
-                ${createHeader('Apps', 'apps')}
-                ${createHeader('Goals', 'goals')}
-                ${createHeader('Assists', 'assists')}
-                ${createHeader('Yel', 'yellow_cards')}
-                ${createHeader('Red', 'red_cards')}
+                ${createHeader('Presenze', 'apps')}
+                ${createHeader('Goal', 'goals')}
+                ${createHeader('Assist', 'assists')}
+                ${createHeader('Gialli', 'yellow_cards')}
+                ${createHeader('Rossi', 'red_cards')}
             </tr>`;
 
         tbody.innerHTML = '';
