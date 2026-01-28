@@ -816,13 +816,12 @@ body { top: 0px !important; }
 }
 
 
-/* --- ORGANIZATION CHART (Business Cards) --- */
+/* --- ORGANIZATION CHART --- */
 .org-grid {
     display: grid;
-    /* Automatically fit as many cards as possible */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 .org-card {
@@ -830,13 +829,13 @@ body { top: 0px !important; }
     border: 3px solid black;
     padding: 20px;
     text-align: center;
-    box-shadow: 4px 4px 0px #ccc; /* Retro Shadow */
+    box-shadow: 4px 4px 0px #ccc;
     transition: all 0.2s ease;
 }
 
 .org-card:hover {
-    transform: translateY(-5px); /* Pops up */
-    box-shadow: 6px 6px 0px var(--team-pink); /* Pink Shadow */
+    transform: translateY(-5px);
+    box-shadow: 6px 6px 0px var(--team-pink);
     border-color: black;
 }
 
