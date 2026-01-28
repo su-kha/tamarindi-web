@@ -816,43 +816,75 @@ body { top: 0px !important; }
 }
 
 
-/* --- ORGANIZATION CHART --- */
+/* --- ORGANIZATION CHART (With Photos) --- */
 .org-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly narrower for portraits */
+    gap: 25px;
     margin-top: 20px;
 }
 
 .org-card {
     background: white;
     border: 3px solid black;
-    padding: 20px;
     text-align: center;
     box-shadow: 4px 4px 0px #ccc;
     transition: all 0.2s ease;
+    overflow: hidden; /* Ensures image stays inside border */
+    display: flex;
+    flex-direction: column;
 }
 
+/* Hover Effect: Pop up + Pink Shadow */
 .org-card:hover {
     transform: translateY(-5px);
     box-shadow: 6px 6px 0px var(--team-pink);
     border-color: black;
 }
 
+/* PHOTO STYLING */
+.org-photo-wrapper {
+    width: 100%;
+    height: 250px; /* Fixed height for consistency */
+    border-bottom: 3px solid black;
+    background-color: #eee; /* Grey placeholder background */
+    overflow: hidden;
+}
+
+.org-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* CROPS the image to fill the box (faces look good) */
+    object-position: center top; /* Focuses on the top (head) */
+    filter: grayscale(100%); /* RETRO LOOK: Black & White by default */
+    transition: filter 0.3s ease;
+}
+
+/* Hover Effect: Bring back color */
+.org-card:hover .org-photo {
+    filter: grayscale(0%);
+}
+
+/* TEXT INFO STYLING */
+.org-info {
+    padding: 15px;
+    flex-grow: 1; /* Pushes text to fill space */
+}
+
 .org-role {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     color: #666;
     letter-spacing: 1px;
-    margin-bottom: 10px;
-    border-bottom: 1px dashed #ccc;
-    padding-bottom: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 .org-name {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: black;
+    line-height: 1.2;
 }
